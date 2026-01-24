@@ -1,29 +1,25 @@
-/* Definición de Variables CSS [12] */
 :root {
-    --color-fondo-oscuro: #212529; /* Gris muy oscuro (casi negro) */
-    --color-fondo-medio: #343a40;  /* Gris oscuro para tarjetas/secciones */
-    --color-texto-claro: #f8f9fa;  /* Gris muy claro para lectura */
-    --color-acento: #ffc107;       /* Amarillo (Warning de Bootstrap o personalizado) */
+    --color-fondo-oscuro: #212529; /* Gris muy oscuro */
+    --color-fondo-medio: #343a40;  /* Gris oscuro  */
+    --color-texto-claro: #f8f9fa;  /* Gris claro */
+    --color-acento: #ffc107;       /* amarillo */
     --fuente-principal: 'Poppins', sans-serif;
 }
 
-/* Estilos Globales */
 body {
     font-family: var(--fuente-principal);
     background-color: var(--color-fondo-oscuro);
     color: var(--color-texto-claro);
-    padding-top: 56px; /* Espacio para que la navbar fija no tape contenido [13] */
+    padding-top: 56px;
 }
 
-/* Personalización del Header (Hero) con imagen de fondo oscura */
 .header-principal {
-    height: 70vh; /* 50% del alto de la ventana  */
-    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/3d.jpg'); /* Imagen de fondo con oscurecimiento */
+    height: 70vh; 
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/3d.jpg');
     background-size: cover;
     background-position: center;
 }
 
-/* Personalización de botones para que coincidan con tu amarillo */
 .btn-warning {
     background-color: var(--color-acento);
     border: none;
