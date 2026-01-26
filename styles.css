@@ -14,21 +14,21 @@ body {
 }
 
 .header-principal {
-    height: 70vh; /* 50% del alto de la ventana  */
+    height: 70vh; 
     background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/3d.jpg'); /* Imagen de fondo con oscurecimiento */
     background-size: cover;
     background-position: center;
 }
 
 .header-galeria {
-    height: 70vh; /* 50% del alto de la ventana  */
+    height: 70vh; 
     background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/construccion.avif'); /* Imagen de fondo con oscurecimiento */
     background-size: cover;
     background-position: center;
 }
 
 .header-contacto {
-    height: 70vh; /* 50% del alto de la ventana  */
+    height: 70vh; 
     background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/construccion.avif'); /* Imagen de fondo con oscurecimiento */
     background-size: cover;
     background-position: center;
@@ -39,8 +39,8 @@ body {
     font-weight: 600;
 }
 
-/* Efecto Hover en botones [15] */
+
 .btn-warning:hover {
-    transform: scale(1.05); /* Pequeño aumento de tamaño */
-    transition: transform 0.3s ease; /* Transición suave [16] */
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
 }
