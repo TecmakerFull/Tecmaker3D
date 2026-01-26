@@ -17,8 +17,21 @@ body {
 
 /* Personalización del Header (Hero) con imagen de fondo oscura */
 .header-principal {
-    height: 70vh; /* 50% del alto de la ventana  */
-    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/3d.jpg'); /* Imagen de fondo con oscurecimiento */
+    height: 70vh; /* 70% del alto de la ventana  */
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/3d.jpg'); 
+    background-size: cover;
+    background-position: center;
+}
+
+.header-galeria {
+    height: 70vh; /* 70% del alto de la ventana  */
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/construccion.avif'); 
+    background-size: cover;
+    background-position: center;
+}
+.header-contacto {
+    height: 70vh; /* 70% del alto de la ventana  */
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/construccion.avif'); 
     background-size: cover;
     background-position: center;
 }
