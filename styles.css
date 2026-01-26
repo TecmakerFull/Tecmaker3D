@@ -20,6 +20,19 @@ body {
     background-position: center;
 }
 
+.header-galeria {
+    height: 70vh; /* 50% del alto de la ventana  */
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/construccion.avif'); /* Imagen de fondo con oscurecimiento */
+    background-size: cover;
+    background-position: center;
+}
+
+.header-contacto {
+    height: 70vh; /* 50% del alto de la ventana  */
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('img/construccion.avif'); /* Imagen de fondo con oscurecimiento */
+    background-size: cover;
+    background-position: center;
+}
 .btn-warning {
     background-color: var(--color-acento);
     border: none;
