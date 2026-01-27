@@ -28,11 +28,11 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link active" href="index.html">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="galeria.html">Galería/Tienda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="tienda.html">Tienda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="stl.html">STL</a></li>
                     <li class="nav-item"><a class="nav-link" href="contacto.html">Contacto</a></li>
                 </ul>
             </div>
@@ -43,15 +43,62 @@
         <div class="container">
             <h1 class="display-4 fw-bold">Materializando Ideas</h1>
             <p class="lead text-light">Diseño y venta de productos impresos en 3D. Archivos STL disponibles.</p>
-            <a href="galeria.html" class="btn btn-warning btn-lg mt-3">Ver Productos</a>
+            <a href="tienda.html" class="btn btn-warning btn-lg mt-3">Ver Productos</a>
         </div>
     </header>
 
     <main class="container my-5">
-            <section>
-            <h2 class="text-center mb-4 text-warning">¿Qué ofrecemos?</h2>
+        <section>
+            <h2 class="text-center mb-4 text-warning">Sobre Nosotros</h2>
             <p class="text-center">Soluciones creativas en impresión 3D, desde repuestos mecánicos hasta figuras de colección.</p>
-            </section> 
+        </section>
+
+        <!-- Sección con dos columnas: Imagen y Texto -->
+        <section class="my-5">
+            <div class="row g-4 align-items-center">
+                <!-- Columna 1: Imagen -->
+                <div class="col-md-6">
+                    <div style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)); border-radius: 8px; overflow: hidden; padding: 2px;">
+                        <img src="./Img/imp.jpg" alt="Productos 3D" class="img-fluid rounded" style="max-width: 100%; display: block;">
+                    </div>
+                </div>
+                <!-- Columna 2: Comentario con 2 párrafos -->
+                <div class="col-md-6">
+                    <h3 class="text-warning mb-3">Nuestra Experiencia</h3>
+                    <p>
+                        En Tecmaker 3D nos apasiona la tecnología de impresión 3D y sus infinitas posibilidades. 
+                        Desde nuestros inicios hemos trabajado con dedicación para brindar productos de calidad superior, 
+                        utilizando materiales premium y diseños exclusivos que se adaptan a las necesidades de nuestros clientes.
+                    </p>
+                    <p>
+                        Nuestro equipo de profesionales está siempre innovando y buscando nuevas formas de llevar tus ideas 
+                        a la realidad. Ya sea que necesites prototipos, repuestos personalizados o figuras únicas, 
+                        estamos aquí para materializarlas con la mejor calidad y atención al detalle.
+                    </p>
+                    <br>
+                    <br>
+                    <p>
+                        Puedes acceder a los siguientes sitios para buscar el producto de tus sueños,
+                        nosotros te lo hacemos realidad:
+                    </p>
+                    <!-- links -->
+                    <div class="mt-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="text-warning" style="font-size: 24px; margin-right: 12px;">●</span>
+                            <a href="https://www.thingiverse.com/" target="_blank" class="text-warning text-decoration-none">https://www.thingiverse.com/</a>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="text-warning" style="font-size: 24px; margin-right: 12px;">●</span>
+                            <a href="https://www.printables.com/" target="_blank" class="text-warning text-decoration-none">https://www.printables.com/</a>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="text-warning" style="font-size: 24px; margin-right: 12px;">●</span>
+                            <a href="https://cults3d.com/es" target="_blank" class="text-warning text-decoration-none">https://cults3d.com/es</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="bg-dark text-white text-center py-4 mt-auto">
