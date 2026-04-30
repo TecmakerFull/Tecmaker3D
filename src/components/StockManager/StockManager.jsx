@@ -6,22 +6,21 @@ import styles from './StockManager.module.css'
 
 // ====================================================
 // StockManager — Autenticación real con Supabase Auth
-// RLS verifica el JWT en cada operación de escritura
 // ====================================================
 
 const StockManager = () => {
-  const [session, setSession]           = useState(null)
-  const [authLoading, setAuthLoading]   = useState(true)
-  const [email, setEmail]               = useState('')
-  const [password, setPassword]         = useState('')
-  const [loginError, setLoginError]     = useState('')
+  const [session, setSession] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loginError, setLoginError] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
 
   const { stock, precios, catalogoFilamentos, catalogoAccesorios, cargando, error, cargarStock, ingresarStock, egresarStock, ajustarStock, actualizarPrecio } = useStockStore()
-  const [tab, setTab]               = useState('filamentos')
-  const [inputValues, setInputValues]   = useState({})
+  const [tab, setTab] = useState('filamentos')
+  const [inputValues, setInputValues] = useState({})
   const [precioValues, setPrecioValues] = useState({})
-  const [guardando, setGuardando]       = useState({})
+  const [guardando, setGuardando] = useState({})
 
   const productos = tab === 'filamentos' ? catalogoFilamentos : catalogoAccesorios
 
