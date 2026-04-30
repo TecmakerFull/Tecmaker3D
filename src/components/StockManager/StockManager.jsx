@@ -181,19 +181,19 @@ const StockManager = () => {
           <div className={styles.summaryGrid}>
             <div className={styles.summaryCard}>
               <span className={styles.summaryNumber} style={{ color: '#f59e0b' }}>
-                {filamentos.reduce((acc, f) => acc + (stock[f.id] || 0), 0)}
+                {catalogoFilamentos.reduce((acc, f) => acc + (stock[f.id] || 0), 0)}
               </span>
               <span className={styles.summaryLabel}>Unidades de Filamento</span>
             </div>
             <div className={styles.summaryCard}>
               <span className={styles.summaryNumber} style={{ color: '#6366f1' }}>
-                {accesorios.reduce((acc, a) => acc + (stock[a.id] || 0), 0)}
+                {catalogoAccesorios.reduce((acc, a) => acc + (stock[a.id] || 0), 0)}
               </span>
               <span className={styles.summaryLabel}>Unidades de Accesorios</span>
             </div>
             <div className={styles.summaryCard}>
               <span className={styles.summaryNumber} style={{ color: '#ef4444' }}>
-                {[...filamentos, ...accesorios].filter((p) => (stock[p.id] || 0) === 0).length}
+                {[...catalogoFilamentos, ...catalogoAccesorios].filter((p) => (stock[p.id] || 0) === 0).length}
               </span>
               <span className={styles.summaryLabel}>Sin Stock</span>
             </div>
@@ -202,11 +202,11 @@ const StockManager = () => {
           <div className={styles.tabs}>
             <button className={`${styles.tab} ${tab === 'filamentos' ? styles.tabActive : ''}`}
               onClick={() => setTab('filamentos')} id="tab-filamentos">
-              🧵 Filamentos ({filamentos.length})
+              🧵 Filamentos ({catalogoFilamentos.length})
             </button>
             <button className={`${styles.tab} ${tab === 'accesorios' ? styles.tabActive : ''}`}
               onClick={() => setTab('accesorios')} id="tab-accesorios">
-              ⚙️ Accesorios ({accesorios.length})
+              ⚙️ Accesorios ({catalogoAccesorios.length})
             </button>
           </div>
 
