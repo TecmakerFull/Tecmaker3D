@@ -1,0 +1,392 @@
+/* FilamentosConfig.module.css — Consigna 2 TP3 */
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 5rem;
+}
+
+/* Header */
+.header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.apiTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #818cf8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.35rem 1rem;
+  border-radius: 50px;
+  margin-bottom: 1rem;
+  letter-spacing: 1px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: blink 1.5s ease infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.title {
+  font-size: 1.8rem !important;
+  font-weight: 800 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Loading */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+}
+.loadingText { color: #94a3b8 !important; font-size: 0.95rem !important; }
+
+/* Error */
+.errorContainer {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 14px;
+  padding: 2.5rem;
+  text-align: center;
+}
+.errorTitle   { color: #ef4444 !important; font-size: 1.1rem !important; font-weight: 700 !important; margin-bottom: 0.5rem !important; }
+.errorMessage { color: #94a3b8 !important; font-size: 0.85rem !important; margin-bottom: 1.25rem !important; font-family: monospace; }
+.retryBtn {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  color: #ef4444 !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  border-radius: 8px !important;
+}
+
+/* Content wrapper */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Selector: pills + buscador en la misma fila */
+.selectorRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Pills */
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1.1rem;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.pillActive {
+  font-weight: 700;
+  border-width: 1.5px;
+}
+
+/* Buscador con dropdown */
+.searchWrapper {
+  position: relative;
+  width: 210px;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 0.45rem 1rem;
+  color: #f1f5f9;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.searchInput::placeholder { color: #475569; }
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #1e1e1e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.55rem 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.dropdownItem:hover { background: rgba(99, 102, 241, 0.1); }
+.dropdownItemActive  { background: rgba(99, 102, 241, 0.08); }
+
+.dropdownName {
+  color: #f1f5f9;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  flex: 1;
+}
+
+.dropdownFormula {
+  color: #818cf8;
+  font-size: 0.72rem;
+  font-family: monospace;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+
+/* Tarjeta principal */
+.card {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  padding: 2rem;
+  animation: fadeSlide 0.25s ease;
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Card Header */
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  padding-left: 1.25rem;
+  border-left: 4px solid;
+}
+
+.cardEmoji {
+  font-size: 2.8rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  font-size: 1.6rem !important;
+  font-weight: 800 !important;
+  color: #f1f5f9 !important;
+  margin-bottom: 0.35rem !important;
+  line-height: 1.2 !important;
+}
+
+.cardDesc {
+  color: #64748b !important;
+  font-size: 0.88rem !important;
+  line-height: 1.6 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+/* Temperaturas en el header */
+.tempRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.tempBadge {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.tempBadge strong {
+  color: #e2e8f0;
+  font-weight: 700;
+}
+
+/* Título de sección props */
+.propsTitle {
+  color: #475569 !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.apiSourceBadge {
+  color: #6366f1;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Grid de propiedades */
+.propsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .propsGrid { grid-template-columns: 1fr 1fr; }
+}
+
+.propBox {
+  background: #262626;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.propBox:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: #2a2a35;
+}
+
+.propBoxWide {
+  grid-column: 1 / -1;
+}
+
+/* Header de cada prop: icono + label + unidad */
+.propHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.15rem;
+}
+
+.propIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.propLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Poppins', sans-serif;
+  color: #94a3b8;
+  flex: 1;
+}
+
+.propUnit {
+  color: #64748b;
+  font-size: 0.65rem;
+  font-family: monospace;
+  background: rgba(255,255,255,0.07);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.propValue {
+  color: #e2e8f0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  word-break: break-word;
+}
+
+/* Descripción explicativa de la propiedad */
+.propDesc {
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  font-family: 'Poppins', sans-serif;
+  margin-top: 0.2rem;
+  font-style: italic;
+}
+
+.propFormula {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  width: fit-content;
+  font-family: monospace;
+}
+
+/* Footer */
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cardSource {
+  color: #334155;
+  font-size: 0.75rem;
+}

@@ -1,0 +1,75 @@
+/* STL.module.css */
+.page { padding-top: 76px; min-height: 100vh; }
+.hero {
+  background: linear-gradient(135deg, #0f0f0f 0%, #0d0d1a 50%, #0f0f0f 100%);
+  border-bottom: 1px solid rgba(99,102,241,0.12);
+  padding: 4rem 1.5rem 3rem; text-align: center;
+}
+.label {
+  display: inline-block; background: rgba(99,102,241,0.12);
+  border: 1px solid rgba(99,102,241,0.25); color: #818cf8;
+  font-size: 0.75rem; font-weight: 700; padding: 0.35rem 1rem;
+  border-radius: 50px; margin-bottom: 1rem; letter-spacing: 1.5px;
+}
+.title { font-size: clamp(2rem,5vw,3rem) !important; font-weight: 600 !important; color: #f1f5f9 !important; margin-bottom: 0.75rem !important; }
+.subtitle { color: #94a3b8 !important; font-size: 1rem !important; }
+.container { max-width: 1100px; margin: 0 auto; padding: 3rem 1.5rem 4rem; display: flex; flex-direction: column; gap: 3rem; }
+
+/* Secciones */
+.seccion { display: flex; flex-direction: column; gap: 0.5rem; }
+.seccionTitulo { color: #f1f5f9 !important; font-weight: 700 !important; font-size: 1.2rem !important; margin-bottom: 0.25rem !important; }
+.seccionSub { color: #64748b !important; font-size: 0.88rem !important; margin-bottom: 1.25rem !important; }
+
+/* Grid diseños STL propios */
+.stlGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.25rem; }
+.stlCard {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+  transition: all 0.3s ease;
+}
+.stlCard:hover { border-color: rgba(99,102,241,0.4); transform: translateY(-4px); box-shadow: 0 8px 24px rgba(99,102,241,0.1); }
+.stlImgWrapper { aspect-ratio: 1; overflow: hidden; background: #111; }
+.stlImg { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.stlCard:hover .stlImg { transform: scale(1.06); }
+.stlNombre { color: #e2e8f0 !important; font-weight: 600 !important; font-size: 0.85rem !important; padding: 0.75rem 0.75rem 0.25rem !important; }
+.stlBtn {
+  margin: 0.25rem 0.75rem 0.75rem; padding: 0.4rem 0.75rem;
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  color: #fff; font-size: 0.78rem; font-weight: 600;
+  border-radius: 8px; text-decoration: none; text-align: center;
+  transition: opacity 0.2s;
+}
+.stlBtn:hover { opacity: 0.85; }
+.stlProximo {
+  margin: 0.25rem 0.75rem 0.75rem; padding: 0.4rem 0.75rem;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  color: #475569; font-size: 0.75rem; font-weight: 600;
+  border-radius: 8px; text-align: center;
+}
+
+/* Grid plataformas externas */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; }
+.card {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px; padding: 1.75rem 1.5rem; text-decoration: none;
+  display: flex; flex-direction: column; gap: 0.75rem;
+  transition: all 0.3s ease;
+}
+.card:hover { border-color: rgba(99,102,241,0.35); background: rgba(99,102,241,0.04); transform: translateY(-4px); }
+.cardIcon { font-size: 2rem; }
+.cardName { color: #f1f5f9 !important; font-weight: 700 !important; font-size: 1rem !important; }
+.cardDesc { color: #64748b !important; font-size: 0.82rem !important; line-height: 1.5 !important; flex: 1; }
+.cardArrow { color: #6366f1; font-size: 0.85rem; font-weight: 600; }
+
+/* Info box */
+.infoBox { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 2rem; }
+.infoTitle { color: #f1f5f9 !important; font-weight: 700 !important; font-size: 1.1rem !important; margin-bottom: 1.5rem !important; }
+.steps { display: flex; flex-direction: column; gap: 1rem; }
+.step { display: flex; align-items: flex-start; gap: 1rem; }
+.stepNum {
+  background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.25);
+  color: #f59e0b; width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 700; flex-shrink: 0;
+}
+.stepText { color: #94a3b8 !important; font-size: 0.9rem !important; padding-top: 4px; }

@@ -1,0 +1,30 @@
+/* Footer.module.css */
+.footer {
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 3rem 1.5rem 1.5rem;
+}
+.container { max-width: 1280px; margin: 0 auto; }
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 2.5rem;
+}
+@media (max-width: 768px) { .grid { grid-template-columns: 1fr; gap: 2rem; } }
+.logo { display: flex; align-items: center; gap: 0.5rem; font-size: 1.3rem; font-weight: 800; color: #f59e0b; margin-bottom: 0.75rem; }
+.brandDesc { color: #475569; font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem; }
+.social { display: flex; gap: 1rem; }
+.socialLink { color: #f59e0b; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s ease; }
+.socialLink:hover { color: #fbbf24; }
+.navTitle { color: #f1f5f9; font-weight: 700; font-size: 0.875rem; margin-bottom: 1rem; }
+.navLinks { display: flex; flex-direction: column; gap: 0.6rem; }
+.navLink { color: #475569; text-decoration: none; font-size: 0.85rem; transition: color 0.2s ease; }
+.navLink:hover { color: #f59e0b; }
+.bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 1.5rem;
+  text-align: center;
+  color: #334155;
+  font-size: 0.8rem;
+}

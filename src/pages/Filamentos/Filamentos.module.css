@@ -1,0 +1,193 @@
+/* Filamentos.module.css */
+
+.page {
+  padding-top: 76px;
+  min-height: 100vh;
+}
+
+.hero {
+  background: linear-gradient(135deg, #0f0f0f 0%, #1a0e00 50%, #0f0f0f 100%);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.12);
+  padding: 4rem 1.5rem 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+}
+
+.pageLabel {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: #f59e0b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.35rem 1rem;
+  border-radius: 50px;
+  margin-bottom: 1rem;
+  letter-spacing: 1.5px;
+}
+
+.pageTitle {
+  font-size: clamp(2rem, 5vw, 3rem) !important;
+  font-weight: 600 !important;
+  color: #f1f5f9 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.pageSubtitle {
+  color: #94a3b8 !important;
+  font-size: 1rem !important;
+}
+
+/* Toolbar de filtros */
+.toolbar {
+  background: #111;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1rem 1.5rem;
+  position: sticky;
+  top: 76px;
+  z-index: 100;
+}
+
+.toolbarInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filterLabel {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.filterBtn {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #94a3b8 !important;
+  font-size: 0.78rem !important;
+  font-weight: 500 !important;
+  padding: 0.3rem 0.9rem !important;
+  border-radius: 20px !important;
+  cursor: pointer;
+  transition: all 0.2s ease !important;
+  font-family: 'Poppins', sans-serif !important;
+  text-transform: none !important;
+}
+
+.filterBtn:hover {
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.05) !important;
+}
+
+.filterBtnActive {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #f59e0b !important;
+}
+
+.searchInput {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.4rem 1rem;
+  color: #f1f5f9;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  width: 200px;
+  transition: all 0.2s ease;
+}
+
+.searchInput::placeholder { color: #475569; }
+
+.searchInput:focus {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.03);
+}
+
+/* Sub-nav — centrado */
+.subNav {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.subNavLink {
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.subNavLink:hover { color: #f59e0b; background: rgba(245, 158, 11, 0.08); }
+
+.subNavLinkActive {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  border-bottom: 2px solid #f59e0b;
+}
+
+/* Grilla de productos */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.resultsInfo {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.emptyResult {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #475569;
+}
+
+.emptyResultIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
