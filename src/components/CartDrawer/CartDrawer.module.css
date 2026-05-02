@@ -301,3 +301,20 @@
 .clearBtn:hover {
   color: #ef4444 !important;
 }
+
+/* Advertencia de reserva parcial */
+.reservaError {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 8px;
+  padding: 0.65rem 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.75rem;
+  color: #f59e0b;
+}
+
+.reservaError strong { font-weight: 700; }
+.reservaError span   { color: #94a3b8; }

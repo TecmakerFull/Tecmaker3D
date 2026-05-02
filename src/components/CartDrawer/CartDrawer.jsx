@@ -1,7 +1,11 @@
-import { Typography, Button } from '@mui/material'
+import { useState } from 'react'
+import { Typography, Button, CircularProgress } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import useCartStore from '../../stores/useCartStore'
 import useStockStore from '../../stores/useStockStore'
+import useAuthStore from '../../stores/useAuthStore'
+import useReservasStore from '../../stores/useReservasStore'
+import AuthModal from '../Auth/AuthModal'
 import styles from './CartDrawer.module.css'
 
 // ====================================================
@@ -12,15 +16,23 @@ import styles from './CartDrawer.module.css'
 const WHATSAPP_NUMBER = '5493415866464' // Enrique
 
 const CartDrawer = () => {
-  const items = useCartStore((state) => state.items)
-  const isOpen = useCartStore((state) => state.isCartOpen)
-  const closeCart = useCartStore((state) => state.closeCart)
-  const removeItem = useCartStore((state) => state.removeItem)
+  const items        = useCartStore((state) => state.items)
+  const isOpen       = useCartStore((state) => state.isCartOpen)
+  const closeCart    = useCartStore((state) => state.closeCart)
+  const removeItem   = useCartStore((state) => state.removeItem)
   const incrementItem = useCartStore((state) => state.incrementItem)
   const decrementItem = useCartStore((state) => state.decrementItem)
-  const clearCart = useCartStore((state) => state.clearCart)
+  const clearCart    = useCartStore((state) => state.clearCart)
   const increaseStock = useStockStore((state) => state.increaseStock)
   const decreaseStock = useStockStore((state) => state.decreaseStock)
+  const stock        = useStockStore((state) => state.stock)
+  const session      = useAuthStore((s) => s.session)
+  const crearReserva = useReservasStore((s) => s.crearReserva)
+  const reservasGlobal = useReservasStore((s) => s.reservasGlobal)
+
+  const [showAuthModal,  setShowAuthModal]  = useState(false)
+  const [reservando,     setReservando]     = useState(false)
+  const [erroresReserva, setErroresReserva] = useState([])  // items que no se pudieron reservar
 
   const totalItems = items.reduce((acc, item) => acc + item.cantidad, 0)
   const totalPrice = items.reduce((acc, item) => acc + item.precio * item.cantidad, 0)
@@ -32,7 +44,14 @@ const CartDrawer = () => {
       maximumFractionDigits: 0,
     }).format(precio)
 
+  // Calcular stock disponible (restando reservas activas de otros)
+  const stockDisponible = (item) => {
+    const reservada = reservasGlobal[item.id]?.cantidad || 0
+    return Math.max(0, (stock[item.id] ?? 0) - reservada)
+  }
+
   const handleIncrement = (item) => {
+    // No superar el stock disponible (ya descontado en cart)
     incrementItem(item.id)
     decreaseStock(item.id, 1)
   }
@@ -52,18 +71,51 @@ const CartDrawer = () => {
     clearCart()
   }
 
-  const handleReservar = () => {
-    const lineas = items.map(
-      (item) =>
-        `  - ${item.nombre} x${item.cantidad}: ${formatPrecio(item.precio * item.cantidad)}`
+  // ── Reservar por WhatsApp ──
+  const handleReservar = async () => {
+    // 1. Verificar login
+    if (!session) { setShowAuthModal(true); return }
+
+    setReservando(true)
+    setErroresReserva([])
+
+    const reservados = []
+    const fallidos   = []
+
+    // 2. Intentar reservar cada item del carrito
+    for (const item of items) {
+      const { error } = await crearReserva(item.producto_id || item.id, item.cantidad)
+      if (error) {
+        fallidos.push({ ...item, motivo: error })
+      } else {
+        reservados.push(item)
+      }
+    }
+
+    setReservando(false)
+
+    // 3. Si nada se pudo reservar, mostrar error y no abrir WhatsApp
+    if (reservados.length === 0) {
+      setErroresReserva(fallidos)
+      return
+    }
+
+    // 4. Avisar sobre los fallidos (si hay parciales)
+    if (fallidos.length > 0) setErroresReserva(fallidos)
+
+    // 5. Armar mensaje de WhatsApp solo con los reservados
+    const lineas = reservados.map(
+      (item) => `  - ${item.nombre} x${item.cantidad}: ${formatPrecio(item.precio * item.cantidad)}`
     )
+    const totalReservado = reservados.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
 
     const mensaje =
       `*RESERVA DE PEDIDO - TecMaker 3D*\n\n` +
       `*Productos:*\n${lineas.join('\n')}\n\n` +
-      `*Total: ${formatPrecio(totalPrice)}*\n\n` +
+      `*Total: ${formatPrecio(totalReservado)}*\n\n` +
+      `✅ Reserva confirmada por 30 minutos\n` +
       `--------------------------------\n` +
-      `Una vez confirmada la disponibilidad, podes abonar por Mercado Pago:\n\n` +
+      `Una vez confirmada la disponibilidad, podés abonar por Mercado Pago:\n\n` +
       `*Nombre:* Enrique Cesar Temperini\n` +
       `*Alias:* tecmaker.3d\n` +
       `*CVU:* 0000003100076322336301\n\n` +
@@ -77,6 +129,13 @@ const CartDrawer = () => {
 
   return (
     <>
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <AuthModal
+          mensajeContexto="Para reservar tus productos necesitás iniciar sesión."
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
       {/* Overlay */}
       <div className={styles.overlay} onClick={closeCart} />
 
@@ -158,6 +217,16 @@ const CartDrawer = () => {
         {/* Footer con total */}
         {items.length > 0 && (
           <div className={styles.footer}>
+            {/* Errores de reserva parcial */}
+            {erroresReserva.length > 0 && (
+              <div className={styles.reservaError}>
+                <strong>⚠️ No se pudo reservar:</strong>
+                {erroresReserva.map((item) => (
+                  <span key={item.id}>· {item.nombre}: {item.motivo}</span>
+                ))}
+              </div>
+            )}
+
             <div className={styles.totalRow}>
               <Typography className={styles.totalLabel}>Total:</Typography>
               <Typography className={styles.totalAmount}>
@@ -168,10 +237,15 @@ const CartDrawer = () => {
               className={styles.checkoutBtn}
               id="btn-reservar-pedido"
               onClick={handleReservar}
+              disabled={reservando}
             >
-              📱 Reservar por WhatsApp
+              {reservando
+                ? <><CircularProgress size={14} sx={{ color: '#000', mr: 1 }} /> Reservando...</>
+                : '📱 Reservar por WhatsApp'
+              }
             </Button>
-            <Button className={styles.clearBtn} onClick={handleClearCart} id="btn-vaciar-carrito">
+            <Button className={styles.clearBtn} onClick={handleClearCart} id="btn-vaciar-carrito"
+              disabled={reservando}>
               Vaciar carrito
             </Button>
           </div>

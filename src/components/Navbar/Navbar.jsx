@@ -4,6 +4,8 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import MenuIcon from '@mui/icons-material/Menu'
 import CloseIcon from '@mui/icons-material/Close'
 import useCartStore from '../../stores/useCartStore'
+import useAuthStore from '../../stores/useAuthStore'
+import UserMenu, { LoginButton } from '../Auth/UserMenu'
 import styles from './Navbar.module.css'
 
 // ====================================================
@@ -14,9 +16,10 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Zustand: obtenemos items del carrito y función para abrir
-  const items = useCartStore((state) => state.items)
+  const items    = useCartStore((state) => state.items)
   const openCart = useCartStore((state) => state.openCart)
+  const session  = useAuthStore((s) => s.session)
+  const esAdmin  = useAuthStore((s) => s.esAdmin)
 
   // Cantidad total del carrito
   const totalItems = items.reduce((acc, item) => acc + item.cantidad, 0)
@@ -113,17 +116,33 @@ const Navbar = () => {
               Contacto
             </NavLink>
           </li>
-          <li>
-            <NavLink
-              to="/admin/stock"
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-              }
-              onClick={handleNavClick}
-            >
-              📦 Stock
-            </NavLink>
-          </li>
+          {/* Tabs solo para admin */}
+          {esAdmin && (
+            <>
+              <li>
+                <NavLink
+                  to="/admin/stock"
+                  className={({ isActive }) =>
+                    `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
+                  }
+                  onClick={handleNavClick}
+                >
+                  📦 Stock
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/admin/reservas"
+                  className={({ isActive }) =>
+                    `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
+                  }
+                  onClick={handleNavClick}
+                >
+                  📋 Reservas
+                </NavLink>
+              </li>
+            </>
+          )}
         </ul>
 
         {/* Acciones: Carrito */}
@@ -142,6 +161,9 @@ const Navbar = () => {
               </span>
             )}
           </button>
+
+          {/* Login / Avatar */}
+          {session ? <UserMenu /> : <LoginButton />}
 
           {/* Botón hamburguesa mobile */}
           <button

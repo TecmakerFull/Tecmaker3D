@@ -171,6 +171,55 @@
   text-align: left;
 }
 
+/* Header ordenable */
+.thSortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.thSortable:hover {
+  color: #f59e0b;
+}
+
+/* Barra de búsqueda sobre la tabla */
+.tableSearch {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.tableSearchInput {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  padding: 0.4rem 1rem;
+  color: #f1f5f9;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  width: 280px;
+  transition: all 0.2s ease;
+}
+
+.tableSearchInput::placeholder { color: #475569; }
+
+.tableSearchInput:focus {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.03);
+}
+
+.tableSearchCount {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+
 .row {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   transition: background 0.15s ease;
@@ -405,7 +454,69 @@
   transition: all 0.2s;
 }
 
+
 .logoutBtn:hover {
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.3);
 }
+
+/* ── Fila tabs + botón nuevo ── */
+.tabsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.tabsRow .tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.btnNuevo {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.55rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btnNuevo:hover {
+  background: rgba(245, 158, 11, 0.22);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.12);
+}
+
+/* ── Botón eliminar ── */
+.btnDelete {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border: 1px solid rgba(239, 68, 68, 0.18) !important;
+  color: #ef4444 !important;
+  font-size: 0.9rem !important;
+  min-width: 36px !important;
+  height: 34px !important;
+  border-radius: 6px !important;
+  opacity: 0.5;
+  transition: opacity 0.2s !important;
+}
+
+.btnDelete:hover {
+  opacity: 1 !important;
+  background: rgba(239, 68, 68, 0.16) !important;
+}
+

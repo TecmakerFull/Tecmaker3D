@@ -166,6 +166,239 @@ const useStockStore = create((set, get) => ({
     return { error }
   },
 
+  // ── Generar ID incremental por tipo ──────────────
+  // Busca el último ID del tipo (ej: "fil-023") y devuelve el siguiente ("fil-024")
+  _generarId: async (tipo) => {
+    const prefijos = {
+      filamento: 'fil',
+      accesorio: 'acc',
+      impresion: 'imp',
+      stl:       'stl',
+    }
+    const prefijo = prefijos[tipo] || 'prod'
+
+    // Buscar todos los IDs que empiecen con el prefijo
+    const { data } = await supabase
+      .from('productos')
+      .select('id')
+      .like('id', `${prefijo}-%`)
+
+    let maxNum = 0
+    if (data && data.length > 0) {
+      data.forEach(({ id }) => {
+        const partes = id.split('-')
+        const num = parseInt(partes[partes.length - 1], 10)
+        if (!isNaN(num) && num > maxNum) maxNum = num
+      })
+    }
+
+    const siguiente = maxNum + 1
+    // Formatea con ceros: fil-001, fil-024, fil-100, etc.
+    const padded = siguiente < 10
+      ? `00${siguiente}`
+      : siguiente < 100
+        ? `0${siguiente}`
+        : `${siguiente}`
+
+    return `${prefijo}-${padded}`
+  },
+
+  // ── Crear nuevo producto ─────────────────────────
+  crearProducto: async (datos, imagenFile) => {
+    let imagenUrl = datos.imagen || ''
+
+    // 1. Generar ID incremental según el tipo
+    const nuevoId = await get()._generarId(datos.tipo)
+
+    // 2. Subir imagen al Storage si se proporcionó un archivo
+    if (imagenFile) {
+      const ext = imagenFile.name.split('.').pop()
+      const path = `${datos.tipo}s/${nuevoId}_${datos.nombre.replace(/\s+/g, '_').toLowerCase()}.${ext}`
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('productos')
+        .upload(path, imagenFile, { contentType: imagenFile.type, upsert: false })
+
+      if (uploadError) {
+        console.error('Error subiendo imagen:', uploadError)
+        return { error: uploadError }
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('productos')
+        .getPublicUrl(uploadData.path)
+
+      imagenUrl = urlData.publicUrl
+    }
+
+    // 3. Insertar producto en la tabla con el ID generado
+    const { data, error } = await supabase
+      .from('productos')
+      .insert({
+        id:             nuevoId,
+        nombre:         datos.nombre,
+        marca:          datos.marca,
+        tipo:           datos.tipo,
+        material:       datos.material || null,
+        color:          datos.color || null,
+        precio:         Number(datos.precio) || 0,
+        descripcion:    datos.descripcion || null,
+        imagen:         imagenUrl,
+        peso:           datos.peso || null,
+        diametro:       datos.diametro || null,
+        temp_impresion: datos.temp_impresion || null,
+        temp_cama:      datos.temp_cama || null,
+        especificaciones: datos.especificaciones || null,
+        link_compra:    datos.link_compra || null,
+        stock:          Number(datos.stock) || 0,
+        activo:         true,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creando producto:', error)
+      return { error }
+    }
+
+    // 3. Actualizar catálogo local sin recargar todo
+    const nuevo = {
+      ...data,
+      tempImpresion: data.temp_impresion,
+      tempCama:      data.temp_cama,
+      categoria:     data.tipo === 'accesorio' ? data.marca : undefined,
+    }
+
+    set((state) => {
+      const stockMap  = { ...state.stock,  [data.id]: data.stock }
+      const precioMap = { ...state.precios, [data.id]: data.precio }
+      const catalogoMap = { ...state.catalogo, [data.id]: nuevo }
+
+      const actualizar = (lista, tipo) =>
+        data.tipo === tipo ? [...lista, nuevo] : lista
+
+      return {
+        stock:               stockMap,
+        precios:             precioMap,
+        catalogo:            catalogoMap,
+        catalogoFilamentos:  actualizar(state.catalogoFilamentos,  'filamento'),
+        catalogoAccesorios:  actualizar(state.catalogoAccesorios,  'accesorio'),
+        catalogoImpresiones: actualizar(state.catalogoImpresiones, 'impresion'),
+        catalogoSTL:         actualizar(state.catalogoSTL,         'stl'),
+      }
+    })
+
+    return { data: nuevo, error: null }
+  },
+
+  // ── Actualizar producto existente ────────────────
+  actualizarProducto: async (productoId, datos, imagenFile) => {
+    let imagenUrl = datos.imagen || ''
+
+    // 1. Subir nueva imagen si se proporcionó archivo
+    if (imagenFile) {
+      const ext  = imagenFile.name.split('.').pop()
+      const path = `${datos.tipo || 'productos'}s/${productoId}_edit_${Date.now()}.${ext}`
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('productos')
+        .upload(path, imagenFile, { contentType: imagenFile.type, upsert: true })
+
+      if (uploadError) {
+        console.error('Error subiendo imagen:', uploadError)
+        return { error: uploadError }
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('productos')
+        .getPublicUrl(uploadData.path)
+
+      imagenUrl = urlData.publicUrl
+    }
+
+    // 2. UPDATE en Supabase
+    const { data, error } = await supabase
+      .from('productos')
+      .update({
+        nombre:           datos.nombre,
+        marca:            datos.marca,
+        material:         datos.material   || null,
+        color:            datos.color      || null,
+        precio:           Number(datos.precio) || 0,
+        descripcion:      datos.descripcion || null,
+        imagen:           imagenUrl,
+        peso:             datos.peso       || null,
+        diametro:         datos.diametro   || null,
+        temp_impresion:   datos.temp_impresion || null,
+        temp_cama:        datos.temp_cama  || null,
+        especificaciones: datos.especificaciones || null,
+        link_compra:      datos.link_compra || null,
+      })
+      .eq('id', productoId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error actualizando producto:', error)
+      return { error }
+    }
+
+    // 3. Sincronizar estado local
+    const actualizado = {
+      ...data,
+      tempImpresion: data.temp_impresion,
+      tempCama:      data.temp_cama,
+      categoria:     data.tipo === 'accesorio' ? data.marca : undefined,
+    }
+
+    set((state) => {
+      const precioMap   = { ...state.precios,  [data.id]: data.precio }
+      const catalogoMap = { ...state.catalogo, [data.id]: actualizado }
+
+      const reemplazar = (lista) =>
+        lista.map((p) => p.id === productoId ? actualizado : p)
+
+      return {
+        precios:             precioMap,
+        catalogo:            catalogoMap,
+        catalogoFilamentos:  reemplazar(state.catalogoFilamentos),
+        catalogoAccesorios:  reemplazar(state.catalogoAccesorios),
+        catalogoImpresiones: reemplazar(state.catalogoImpresiones),
+        catalogoSTL:         reemplazar(state.catalogoSTL),
+      }
+    })
+
+    return { data: actualizado, error: null }
+  },
+
+  // ── Eliminar producto ────────────────────────────
+  eliminarProducto: async (productoId) => {
+    const { error } = await supabase
+      .from('productos')
+      .update({ activo: false })
+      .eq('id', productoId)
+
+    if (error) return { error }
+
+    set((state) => {
+      const filtrar = (lista) => lista.filter((p) => p.id !== productoId)
+      const { [productoId]: _s, ...stockRest   } = state.stock
+      const { [productoId]: _p, ...precioRest  } = state.precios
+      const { [productoId]: _c, ...catalogoRest } = state.catalogo
+      return {
+        stock:               stockRest,
+        precios:             precioRest,
+        catalogo:            catalogoRest,
+        catalogoFilamentos:  filtrar(state.catalogoFilamentos),
+        catalogoAccesorios:  filtrar(state.catalogoAccesorios),
+        catalogoImpresiones: filtrar(state.catalogoImpresiones),
+        catalogoSTL:         filtrar(state.catalogoSTL),
+      }
+    })
+
+    return { error: null }
+  },
+
   // ── Getters ──────────────────────────────────────
   getStock:  (productoId) => get().stock[productoId] ?? 0,
   hasStock:  (productoId, cantidad = 1) => (get().stock[productoId] ?? 0) >= cantidad,

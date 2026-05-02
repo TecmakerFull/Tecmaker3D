@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Typography, Button, CircularProgress } from '@mui/material'
+import AddIcon from '@mui/icons-material/Add'
 import { supabase } from '../../lib/supabase'
 import useStockStore from '../../stores/useStockStore'
+import NuevoProductoModal from './NuevoProductoModal'
+import EditarProductoModal from './EditarProductoModal'
 import styles from './StockManager.module.css'
 
 // ====================================================
@@ -16,13 +19,51 @@ const StockManager = () => {
   const [loginError, setLoginError] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
 
-  const { stock, precios, catalogoFilamentos, catalogoAccesorios, cargando, error, cargarStock, ingresarStock, egresarStock, ajustarStock, actualizarPrecio } = useStockStore()
+  const { stock, precios, catalogoFilamentos, catalogoAccesorios, cargando, error, cargarStock, ingresarStock, egresarStock, ajustarStock, actualizarPrecio, eliminarProducto } = useStockStore()
   const [tab, setTab] = useState('filamentos')
   const [inputValues, setInputValues] = useState({})
   const [precioValues, setPrecioValues] = useState({})
   const [guardando, setGuardando] = useState({})
+  const [modalAbierto, setModalAbierto] = useState(false)
+  const [productoEditando, setProductoEditando] = useState(null)
 
   const productos = tab === 'filamentos' ? catalogoFilamentos : catalogoAccesorios
+
+  // ── Búsqueda y ordenamiento local ──
+  const [busqueda,  setBusqueda]  = useState('')
+  const [sortCol,   setSortCol]   = useState(null)   // 'nombre' | 'marca' | 'precio' | 'stock'
+  const [sortDir,   setSortDir]   = useState('asc')  // 'asc' | 'desc'
+
+  const handleSort = (col) => {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortCol(col); setSortDir('asc') }
+  }
+
+  const productosFiltrados = useMemo(() => {
+    const q = busqueda.toLowerCase()
+    let lista = productos.filter(p =>
+      !q ||
+      (p.nombre || '').toLowerCase().includes(q) ||
+      (p.marca  || p.categoria || '').toLowerCase().includes(q)
+    )
+    if (sortCol) {
+      lista = [...lista].sort((a, b) => {
+        let va, vb
+        if (sortCol === 'nombre') { va = a.nombre || ''; vb = b.nombre || '' }
+        else if (sortCol === 'marca') { va = a.marca || a.categoria || ''; vb = b.marca || b.categoria || '' }
+        else if (sortCol === 'precio') { va = precios[a.id] ?? a.precio ?? 0; vb = precios[b.id] ?? b.precio ?? 0 }
+        else if (sortCol === 'stock')  { va = stock[a.id] || 0; vb = stock[b.id] || 0 }
+        if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va)
+        return sortDir === 'asc' ? va - vb : vb - va
+      })
+    }
+    return lista
+  }, [productos, busqueda, sortCol, sortDir, stock, precios])
+
+  const sortIcon = (col) => {
+    if (sortCol !== col) return ' ↕'
+    return sortDir === 'asc' ? ' ↑' : ' ↓'
+  }
 
   // Detectar sesión existente al montar
   useEffect(() => {
@@ -89,6 +130,13 @@ const StockManager = () => {
     setGuardando((prev) => ({ ...prev, [`out-${id}`]: true }))
     await egresarStock(id, 1, 'Egreso -1')
     setGuardando((prev) => ({ ...prev, [`out-${id}`]: false }))
+  }
+
+  const handleEliminar = async (id, nombre) => {
+    if (!window.confirm(`¿Desactivar "${nombre}" del catálogo?`)) return
+    setGuardando((prev) => ({ ...prev, [`del-${id}`]: true }))
+    await eliminarProducto(id)
+    setGuardando((prev) => ({ ...prev, [`del-${id}`]: false }))
   }
 
   const getStockColor = (cantidad) => {
@@ -199,67 +247,80 @@ const StockManager = () => {
             </div>
           </div>
 
-          <div className={styles.tabs}>
-            <button className={`${styles.tab} ${tab === 'filamentos' ? styles.tabActive : ''}`}
-              onClick={() => setTab('filamentos')} id="tab-filamentos">
-              🧵 Filamentos ({catalogoFilamentos.length})
-            </button>
-            <button className={`${styles.tab} ${tab === 'accesorios' ? styles.tabActive : ''}`}
-              onClick={() => setTab('accesorios')} id="tab-accesorios">
-              ⚙️ Accesorios ({catalogoAccesorios.length})
+          <div className={styles.tabsRow}>
+            <div className={styles.tabs}>
+              <button className={`${styles.tab} ${tab === 'filamentos' ? styles.tabActive : ''}`}
+                onClick={() => setTab('filamentos')} id="tab-filamentos">
+                🧵 Filamentos ({catalogoFilamentos.length})
+              </button>
+              <button className={`${styles.tab} ${tab === 'accesorios' ? styles.tabActive : ''}`}
+                onClick={() => setTab('accesorios')} id="tab-accesorios">
+                ⚙️ Accesorios ({catalogoAccesorios.length})
+              </button>
+            </div>
+            <button
+              className={styles.btnNuevo}
+              onClick={() => setModalAbierto(true)}
+              id="btn-nuevo-producto"
+            >
+              <AddIcon fontSize="small" /> Nuevo Producto
             </button>
           </div>
 
           <div className={styles.tableWrapper}>
+
+            {/* Barra de búsqueda */}
+            <div className={styles.tableSearch}>
+              <input
+                type="text"
+                placeholder="🔍 Buscar por nombre o marca..."
+                className={styles.tableSearchInput}
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                id="input-buscar-stock"
+              />
+              {busqueda && (
+                <span className={styles.tableSearchCount}>
+                  {productosFiltrados.length} resultado{productosFiltrados.length !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Producto</th>
-                  <th>Marca/Cat.</th>
-                  <th>Precio</th>
-                  <th>Stock</th>
+                  <th className={styles.thSortable} onClick={() => handleSort('nombre')}>
+                    Producto{sortIcon('nombre')}
+                  </th>
+                  <th className={styles.thSortable} onClick={() => handleSort('marca')}>
+                    Marca/Cat.{sortIcon('marca')}
+                  </th>
+                  <th className={styles.thSortable} onClick={() => handleSort('stock')}>
+                    Stock{sortIcon('stock')}
+                  </th>
                   <th>Ingreso (+)</th>
                   <th>Egreso (−)</th>
                   <th>Ajustar</th>
                 </tr>
               </thead>
               <tbody>
-                {productos.map((p) => {
+                {productosFiltrados.map((p) => {
                   const stockActual = stock[p.id] || 0
                   return (
                     <tr key={p.id} className={styles.row}>
                       <td>
-                        <div className={styles.productCell}>
+                        <div
+                          className={styles.productCell}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setProductoEditando(p)}
+                          title="Editar producto"
+                        >
                           <img src={p.imagen} alt={p.nombre} className={styles.productImg}
                             onError={(e) => { e.target.style.display = 'none' }} />
-                          <span className={styles.productName}>{p.nombre}</span>
+                          <span className={styles.productName} style={{ color: '#f59e0b', textDecoration: 'underline dotted' }}>{p.nombre}</span>
                         </div>
                       </td>
                       <td className={styles.cellMarca}>{p.marca || p.categoria}</td>
-                      <td>
-                        <div className={styles.setGroup}>
-                          <span className={styles.precioActual}>
-                            ${(precios[p.id] ?? p.precio ?? 0).toLocaleString('es-AR')}
-                          </span>
-                          <input
-                            type="number" min="0"
-                            className={styles.setInput}
-                            style={{ width: '80px' }}
-                            value={precioValues[p.id] || ''}
-                            onChange={(e) => handlePrecioChange(p.id, e.target.value)}
-                            placeholder="nuevo"
-                            id={`input-precio-${p.id}`}
-                          />
-                          <Button
-                            className={styles.btnSet}
-                            onClick={() => handleGuardarPrecio(p.id)}
-                            disabled={!!guardando[`p-${p.id}`]}
-                            id={`btn-precio-${p.id}`}
-                          >
-                            {guardando[`p-${p.id}`] ? '...' : '✓'}
-                          </Button>
-                        </div>
-                      </td>
                       <td>
                         <span className={styles.stockNum} style={{ color: getStockColor(stockActual) }}>
                           {stockActual}
@@ -295,13 +356,30 @@ const StockManager = () => {
                           </Button>
                         </div>
                       </td>
-                    </tr>
+                      </tr>
                   )
                 })}
               </tbody>
             </table>
           </div>
         </>
+      )}
+
+      {/* Modal editar producto */}
+      {productoEditando && (
+        <EditarProductoModal
+          producto={productoEditando}
+          onClose={() => setProductoEditando(null)}
+          onSuccess={() => setProductoEditando(null)}
+        />
+      )}
+
+      {/* Modal nuevo producto */}
+      {modalAbierto && (
+        <NuevoProductoModal
+          onClose={() => setModalAbierto(false)}
+          onSuccess={() => setModalAbierto(false)}
+        />
       )}
     </div>
   )

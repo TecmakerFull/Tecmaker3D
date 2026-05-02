@@ -84,6 +84,18 @@
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+.stockBadge.reservedStock {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  animation: reservePulse 2s ease-in-out infinite;
+}
+
+@keyframes reservePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.65; }
+}
+
 .content {
   padding: 1.25rem !important;
   display: flex;

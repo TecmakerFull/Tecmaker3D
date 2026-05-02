@@ -5,6 +5,8 @@ import Footer from './components/Footer/Footer'
 import CartDrawer from './components/CartDrawer/CartDrawer'
 import StockManager from './components/StockManager/StockManager'
 import useStockStore from './stores/useStockStore'
+import useAuthStore from './stores/useAuthStore'
+import useReservasStore from './stores/useReservasStore'
 
 // Páginas
 import Home from './pages/Home/Home'
@@ -14,18 +16,24 @@ import Accesorios from './pages/Accesorios/Accesorios'
 import Tienda from './pages/Tienda/Tienda'
 import STL from './pages/STL/STL'
 import Contacto from './pages/Contacto/Contacto'
+import Perfil from './pages/Perfil/Perfil'
+import AdminReservas from './pages/AdminReservas/AdminReservas'
 
-// ====================================================
-// App.jsx — Configuración de rutas con React Router
-// Consigna TP3: <BrowserRouter> en main.jsx,
-// <Routes> y <Route> aquí
-// ====================================================
+// ========================================
+// Configuración de rutas con React Router
+// ========================================
 
 function App() {
   const cargarPreciosPublicos = useStockStore((s) => s.cargarPreciosPublicos)
+  const inicializarAuth       = useAuthStore((s) => s.inicializar)
+  const cargarReservasGlobal  = useReservasStore((s) => s.cargarReservasGlobal)
 
-  // Carga precios y stock de Supabase al iniciar la app
-  useEffect(() => { cargarPreciosPublicos() }, [])
+  useEffect(() => {
+    console.log('[App] montando, llamando inicializarAuth')
+    inicializarAuth()          // detecta sesión OAuth + perfil + esAdmin
+    cargarPreciosPublicos()    // catálogo público
+    cargarReservasGlobal()     // qué productos tienen reservas activas
+  }, [])
 
   return (
     <>
@@ -51,6 +59,12 @@ function App() {
 
         {/* Panel de stock administrador */}
         <Route path="/admin/stock" element={<StockManager />} />
+
+        {/* Panel de reservas administrador */}
+        <Route path="/admin/reservas" element={<AdminReservas />} />
+
+        {/* Perfil de usuario */}
+        <Route path="/perfil" element={<Perfil />} />
 
         {/* Ruta 404 */}
         <Route

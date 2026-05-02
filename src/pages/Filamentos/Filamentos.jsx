@@ -66,7 +66,8 @@ const Filamentos = () => {
           {/* Toolbar de filtros */}
           <div className={styles.toolbar}>
             <div className={styles.toolbarInner}>
-              {/* Filtro por marca */}
+
+              {/* ── DESKTOP: pills ── */}
               <div className={styles.filterGroup}>
                 <span className={styles.filterLabel}>Marca:</span>
                 <Button className={`${styles.filterBtn} ${marcaActiva === 'Todas' ? styles.filterBtnActive : ''}`} onClick={() => setMarcaActiva('Todas')} id="filtro-todas-marcas">Todas</Button>
@@ -74,8 +75,6 @@ const Filamentos = () => {
                   <Button key={marca} className={`${styles.filterBtn} ${marcaActiva === marca ? styles.filterBtnActive : ''}`} onClick={() => setMarcaActiva(marca)} id={`filtro-marca-${marca.toLowerCase()}`}>{marca}</Button>
                 ))}
               </div>
-
-              {/* Filtro por material (PLA, PETG, etc.) */}
               <div className={styles.filterGroup}>
                 <span className={styles.filterLabel}>Material:</span>
                 <Button className={`${styles.filterBtn} ${tipoActivo === 'Todos' ? styles.filterBtnActive : ''}`} onClick={() => setTipoActivo('Todos')} id="filtro-todos-tipos">Todos</Button>
@@ -84,8 +83,32 @@ const Filamentos = () => {
                 ))}
               </div>
 
-              {/* Búsqueda */}
-              <input type="text" placeholder="🔍 Buscar..." className={styles.searchInput} value={busqueda} onChange={(e) => setBusqueda(e.target.value)} id="input-buscar-filamento" />
+              {/* ── MOBILE: selects desplegables ── */}
+              <div className={styles.mobileFilters}>
+                <select
+                  className={styles.mobileSelect}
+                  value={marcaActiva}
+                  onChange={(e) => setMarcaActiva(e.target.value)}
+                  id="select-marca-mobile"
+                >
+                  <option value="Todas">🏷️ Marca: Todas</option>
+                  {marcas.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+                <select
+                  className={styles.mobileSelect}
+                  value={tipoActivo}
+                  onChange={(e) => setTipoActivo(e.target.value)}
+                  id="select-material-mobile"
+                >
+                  <option value="Todos">🧪 Material: Todos</option>
+                  {materiales.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+
+              {/* Búsqueda (siempre visible) */}
+              <div className={styles.searchRow}>
+                <input type="text" placeholder="🔍 Buscar..." className={styles.searchInput} value={busqueda} onChange={(e) => setBusqueda(e.target.value)} id="input-buscar-filamento" />
+              </div>
             </div>
           </div>
 
