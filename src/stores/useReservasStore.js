@@ -14,9 +14,14 @@ const useReservasStore = create((set, get) => ({
   // ── Cargar reservas activas del usuario ────────────
   cargarReservas: async () => {
     set({ cargando: true })
+    // Obtener sesión para filtrar por usuario actual
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { set({ cargando: false }); return }
+
     const { data, error } = await supabase
       .from('reservas')
-      .select('*')
+      .select('*, productos(nombre, imagen, marca)')
+      .eq('usuario_id', session.user.id)   // ← solo las del usuario actual
       .eq('estado', 'activa')
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })

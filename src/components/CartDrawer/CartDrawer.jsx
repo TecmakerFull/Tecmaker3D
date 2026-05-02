@@ -23,8 +23,6 @@ const CartDrawer = () => {
   const incrementItem = useCartStore((state) => state.incrementItem)
   const decrementItem = useCartStore((state) => state.decrementItem)
   const clearCart    = useCartStore((state) => state.clearCart)
-  const increaseStock = useStockStore((state) => state.increaseStock)
-  const decreaseStock = useStockStore((state) => state.decreaseStock)
   const stock        = useStockStore((state) => state.stock)
   const session      = useAuthStore((s) => s.session)
   const crearReserva = useReservasStore((s) => s.crearReserva)
@@ -51,23 +49,20 @@ const CartDrawer = () => {
   }
 
   const handleIncrement = (item) => {
-    // No superar el stock disponible (ya descontado en cart)
+    const stockReal = (stock[item.id] ?? 0) - (reservasGlobal[item.id]?.cantidad || 0)
+    if (item.cantidad >= stockReal) return   // no superar stock disponible
     incrementItem(item.id)
-    decreaseStock(item.id, 1)
   }
 
   const handleDecrement = (item) => {
     decrementItem(item.id)
-    increaseStock(item.id, 1)
   }
 
   const handleRemove = (item) => {
-    increaseStock(item.id, item.cantidad)
     removeItem(item.id)
   }
 
   const handleClearCart = () => {
-    items.forEach((item) => increaseStock(item.id, item.cantidad))
     clearCart()
   }
 
@@ -82,47 +77,59 @@ const CartDrawer = () => {
     const reservados = []
     const fallidos   = []
 
-    // 2. Intentar reservar cada item del carrito
-    for (const item of items) {
-      const { error } = await crearReserva(item.producto_id || item.id, item.cantidad)
-      if (error) {
-        fallidos.push({ ...item, motivo: error })
-      } else {
-        reservados.push(item)
+    try {
+      // 2. Intentar reservar cada item del carrito
+      for (const item of items) {
+        console.log('[Reserva] intentando:', item.id, item.nombre)
+        const resultado = await crearReserva(item.producto_id || item.id, item.cantidad)
+        console.log('[Reserva] resultado:', resultado)
+        if (resultado?.error) {
+          fallidos.push({ ...item, motivo: typeof resultado.error === 'string' ? resultado.error : resultado.error?.message || 'Error desconocido' })
+        } else {
+          reservados.push(item)
+        }
       }
+
+      // 3. Si nada se pudo reservar, mostrar error y no abrir WhatsApp
+      if (reservados.length === 0) {
+        setErroresReserva(fallidos)
+        return
+      }
+
+      // 4. Avisar sobre los fallidos (si hay parciales)
+      if (fallidos.length > 0) setErroresReserva(fallidos)
+
+      // 5. Armar mensaje de WhatsApp solo con los reservados
+      const lineas = reservados.map(
+        (item) => `  - ${item.nombre} x${item.cantidad}: ${formatPrecio(item.precio * item.cantidad)}`
+      )
+      const totalReservado = reservados.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
+
+      const mensaje =
+        `*RESERVA DE PEDIDO - TecMaker 3D*\n\n` +
+        `*Productos:*\n${lineas.join('\n')}\n\n` +
+        `*Total: ${formatPrecio(totalReservado)}*\n\n` +
+        `✅ Reserva confirmada por 30 minutos\n` +
+        `--------------------------------\n` +
+        `Una vez confirmada la disponibilidad, podés abonar por Mercado Pago:\n\n` +
+        `*Nombre:* Enrique Cesar Temperini\n` +
+        `*Alias:* tecmaker.3d\n` +
+        `*CVU:* 0000003100076322336301\n\n` +
+        `Enviarme el comprobante por este chat y coordinamos la entrega. Gracias!`
+
+      const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
+      window.open(url, '_blank')
+
+      // Vaciar carrito y cerrarlo tras la reserva exitosa
+      clearCart()
+      closeCart()
+
+    } catch (err) {
+      console.error('[Reserva] Error inesperado:', err)
+      setErroresReserva([{ id: 'err', nombre: 'Error', motivo: err.message || 'Error inesperado' }])
+    } finally {
+      setReservando(false)
     }
-
-    setReservando(false)
-
-    // 3. Si nada se pudo reservar, mostrar error y no abrir WhatsApp
-    if (reservados.length === 0) {
-      setErroresReserva(fallidos)
-      return
-    }
-
-    // 4. Avisar sobre los fallidos (si hay parciales)
-    if (fallidos.length > 0) setErroresReserva(fallidos)
-
-    // 5. Armar mensaje de WhatsApp solo con los reservados
-    const lineas = reservados.map(
-      (item) => `  - ${item.nombre} x${item.cantidad}: ${formatPrecio(item.precio * item.cantidad)}`
-    )
-    const totalReservado = reservados.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
-
-    const mensaje =
-      `*RESERVA DE PEDIDO - TecMaker 3D*\n\n` +
-      `*Productos:*\n${lineas.join('\n')}\n\n` +
-      `*Total: ${formatPrecio(totalReservado)}*\n\n` +
-      `✅ Reserva confirmada por 30 minutos\n` +
-      `--------------------------------\n` +
-      `Una vez confirmada la disponibilidad, podés abonar por Mercado Pago:\n\n` +
-      `*Nombre:* Enrique Cesar Temperini\n` +
-      `*Alias:* tecmaker.3d\n` +
-      `*CVU:* 0000003100076322336301\n\n` +
-      `Enviarme el comprobante por este chat y coordinamos la entrega. Gracias!`
-
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
-    window.open(url, '_blank')
   }
 
   if (!isOpen) return null

@@ -178,4 +178,12 @@
     width: 100%;
     padding: 0.75rem 1rem;
   }
+
+  .cartBtnText {
+    display: none;
+  }
+
+  .cartBtn {
+    padding: 0.5rem 0.65rem !important;
+  }
 }

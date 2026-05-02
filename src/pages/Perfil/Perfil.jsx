@@ -172,7 +172,9 @@ const Perfil = () => {
               {reservasActivas.map((r) => (
                 <div key={r.id} className={styles.reservaItem}>
                   <div className={styles.reservaInfo}>
-                    <span className={styles.reservaProducto}>{r.producto_id}</span>
+                    <span className={styles.reservaProducto}>
+                      {r.productos?.nombre || `Producto #${r.producto_id}`}
+                    </span>
                     <span className={styles.reservaCantidad}>× {r.cantidad}</span>
                   </div>
                   <div className={styles.reservaRight}>

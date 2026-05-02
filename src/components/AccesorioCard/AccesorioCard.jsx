@@ -11,7 +11,6 @@ const AccesorioCard = ({ accesorio }) => {
 
   const addItem       = useCartStore((state) => state.addItem)
   const stock         = useStockStore((state) => state.stock[accesorio.id] ?? 0)
-  const decreaseStock = useStockStore((state) => state.decreaseStock)
 
   const getStockStatus = () => {
     if (stock === 0) return 'out'
@@ -33,7 +32,6 @@ const AccesorioCard = ({ accesorio }) => {
   const handleAddToCart = () => {
     if (stock === 0) return
     addItem({ ...accesorio, marca: accesorio.categoria })
-    decreaseStock(accesorio.id, 1)
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
   }

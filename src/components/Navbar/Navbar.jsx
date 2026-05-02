@@ -154,7 +154,7 @@ const Navbar = () => {
             id="btn-abrir-carrito"
           >
             <ShoppingCartIcon fontSize="small" />
-            <span>Carrito</span>
+            <span className={styles.cartBtnText}>Carrito</span>
             {totalItems > 0 && (
               <span className={styles.cartBadge} key={totalItems}>
                 {totalItems}

@@ -13,7 +13,6 @@ const FilamentCard = ({ filamento }) => {
 
   const addItem       = useCartStore((state) => state.addItem)
   const stock         = useStockStore((state) => state.stock[filamento.id] ?? 0)
-  const decreaseStock = useStockStore((state) => state.decreaseStock)
   const reservasGlobal = useReservasStore((s) => s.reservasGlobal)
 
   const reserva = reservasGlobal[filamento.id]
@@ -71,7 +70,6 @@ const FilamentCard = ({ filamento }) => {
   const handleAddToCart = () => {
     if (stockDisponible === 0 || estaReservado) return
     addItem({ ...filamento })
-    decreaseStock(filamento.id, 1)
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
   }

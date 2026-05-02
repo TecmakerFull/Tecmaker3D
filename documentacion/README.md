@@ -17,7 +17,9 @@
 8. [Custom Hook — useFetch](#custom-hook--usefetch)
 9. [Componentes](#componentes)
 10. [Páginas](#páginas)
-11. [Deploy y Configuración](#deploy-y-configuración)
+11. [Sistema de Autenticación](#sistema-de-autenticación)
+12. [Sistema de Reservas](#sistema-de-reservas)
+13. [Deploy y Configuración](#deploy-y-configuración)
 
 ---
 
@@ -47,25 +49,29 @@ TecMaker 3D/
 ├── package.json
 ├── public/
 │   ├── logo.png             # Logo TecMaker 3D
+│   ├── hexagons.png         # Fondo hexagonal decorativo
 │   └── fondo.png            # Imagen de fondo
 └── src/
     ├── main.jsx             # Punto de entrada React
-    ├── App.jsx              # Rutas principales
+    ├── App.jsx              # Rutas + inicialización de stores globales
     ├── index.css            # Estilos globales + tokens CSS
     ├── lib/
-    │   └── supabase.js      # Cliente Supabase
+    │   └── supabase.js      # Cliente Supabase (con detectSessionInUrl)
     ├── hooks/
     │   └── useFetch.js      # Custom hook HTTP con Axios
     ├── stores/
-    │   ├── useCartStore.js  # Estado global del carrito (Zustand)
-    │   └── useStockStore.js # Estado global de stock/catálogo (Zustand + Supabase)
+    │   ├── useCartStore.js     # Carrito (Zustand)
+    │   ├── useStockStore.js    # Stock y catálogo (Zustand + Supabase)
+    │   ├── useAuthStore.js     # Autenticación Google OAuth (Zustand + Supabase)
+    │   └── useReservasStore.js # Reservas temporales 30min (Zustand + Supabase)
     ├── components/
-    │   ├── Navbar/          # Navegación principal
+    │   ├── Navbar/          # Navegación principal (condicional según rol)
     │   ├── Footer/          # Pie de página
-    │   ├── CartDrawer/      # Panel lateral del carrito
-    │   ├── FilamentCard/    # Tarjeta de filamento
+    │   ├── CartDrawer/      # Panel lateral del carrito + flujo de reserva
+    │   ├── FilamentCard/    # Tarjeta de producto con badge de reserva
     │   ├── AccesorioCard/   # Tarjeta de accesorio
-    │   └── StockManager/    # Panel admin de stock (protegido)
+    │   ├── Auth/            # LoginButton, UserMenu, AuthModal
+    │   └── StockManager/    # Panel admin de stock (solo admin)
     └── pages/
         ├── Home/            # Página de inicio
         ├── Filamentos/      # Catálogo de filamentos + filtros
@@ -73,7 +79,9 @@ TecMaker 3D/
         ├── Accesorios/      # Catálogo de accesorios
         ├── Tienda/          # Productos impresos 3D
         ├── STL/             # Modelos STL + plataformas
-        └── Contacto/        # Formulario de contacto
+        ├── Contacto/        # Formulario de contacto
+        ├── Perfil/          # Perfil de usuario + reservas + historial
+        └── AdminReservas/   # Panel admin: confirmar/cancelar reservas
 ```
 
 ---
@@ -115,6 +123,57 @@ TecMaker 3D/
 | `motivo` | text | Descripción del motivo |
 | `usuario` | text | Quién hizo el movimiento |
 | `created_at` | timestamp | Fecha/hora automática |
+
+#### `perfiles`
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | uuid | PK = auth.users.id |
+| `email` | text | Email de Google |
+| `nombre` | text | Nombre completo |
+| `avatar_url` | text | URL del avatar de Google |
+| `telefono` | text | Teléfono opcional |
+| `es_admin` | boolean | `TRUE` = acceso a Stock y panel de Reservas |
+| `created_at` | timestamp | Fecha de registro |
+
+#### `reservas`
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | uuid | PK |
+| `usuario_id` | uuid | FK → auth.users.id |
+| `producto_id` | int | FK → productos.id |
+| `cantidad` | int | Unidades reservadas |
+| `estado` | text | `activa` / `confirmada` / `expirada` |
+| `expires_at` | timestamp | Expiración (30 min desde creación) |
+| `created_at` | timestamp | Fecha de reserva |
+
+#### `compras`
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | uuid | PK |
+| `usuario_id` | uuid | FK → auth.users.id |
+| `producto_id` | int | FK → productos.id |
+| `cantidad` | int | Unidades compradas |
+| `total` | numeric | Precio total |
+| `created_at` | timestamp | Fecha de compra |
+
+### Función SQL: `confirmar_compra(p_reserva_id)`
+
+Función transaccional que el admin ejecuta para confirmar una venta:
+1. Verifica que la reserva esté activa
+2. Descuenta stock del producto
+3. Registra la compra en `compras`
+4. Marca la reserva como `confirmada`
+
+### Función SQL: `es_admin_actual()`
+
+Función `SECURITY DEFINER` que verifica si el usuario actual tiene `es_admin = TRUE` en `perfiles`, sin causar recursión en las políticas RLS.
+
+### RLS (Row Level Security)
+
+Todas las tablas tienen RLS habilitado:
+- **perfiles**: cada usuario ve solo su perfil; admins ven todos (via `es_admin_actual()`)
+- **reservas**: usuarios ven sus propias reservas; todos ven las activas globales (para mostrar "Reservado")
+- **compras**: usuarios ven su historial; admins gestionan todo
 
 ### Variables de entorno (`.env`)
 
@@ -241,7 +300,9 @@ Configuradas en `src/App.jsx`. `<BrowserRouter>` vive en `main.jsx`.
 | `/tienda` | `Tienda` | Productos impresos en 3D |
 | `/stl` | `STL` | Modelos STL y plataformas externas |
 | `/contacto` | `Contacto` | Formulario de contacto vía WhatsApp |
-| `/admin/stock` | `StockManager` | Panel de administración (requiere login) |
+| `/perfil` | `Perfil` | Perfil de usuario, reservas activas e historial |
+| `/admin/stock` | `StockManager` | Panel de stock (solo admin) |
+| `/admin/reservas` | `AdminReservas` | Panel de reservas activas (solo admin) |
 | `*` | inline 404 | Página no encontrada con link a inicio |
 
 > La ruta `/filamentos/configuraciones` es una **sub-ruta anidada** (`<Outlet />`) dentro de `/filamentos`.
@@ -259,14 +320,18 @@ Configuradas en `src/App.jsx`. `<BrowserRouter>` vive en `main.jsx`.
 
 ### `useCartStore` — Carrito de compras
 
+**Persistencia:** usa el middleware `persist` de Zustand → guarda `items` en **`localStorage`** bajo la clave `tecmaker-carrito`. El carrito sobrevive cierres de sesión, recargas y reinicios del navegador. El drawer (`isCartOpen`) **no** se persiste — siempre arranca cerrado.
+
 **Estado:**
 
 | Campo | Tipo | Descripción |
 |---|---|---|
-| `items` | `Array` | Lista de productos en el carrito |
-| `isCartOpen` | `boolean` | Si el drawer lateral está abierto |
+| `items` | `Array` | Lista de productos en el carrito (persiste en localStorage) |
+| `isCartOpen` | `boolean` | Si el drawer lateral está abierto (no persiste) |
 
 Cada `item` en el carrito tiene: `{ id, nombre, marca, precio, imagen, cantidad }`
+
+> ⚠️ **El carrito NO descuenta stock.** Agregar productos al carrito es solo una selección local. El stock real solo se descuenta en Supabase al hacer una **reserva** (`crearReserva`).
 
 **Acciones:**
 
@@ -276,7 +341,7 @@ Cada `item` en el carrito tiene: `{ id, nombre, marca, precio, imagen, cantidad 
 | `removeItem(productId)` | Elimina un producto del carrito |
 | `incrementItem(productId)` | +1 unidad |
 | `decrementItem(productId)` | −1 unidad (si llega a 0, elimina) |
-| `clearCart()` | Vacía el carrito |
+| `clearCart()` | Vacía el carrito (también limpia localStorage) |
 | `toggleCart()` | Abre/cierra el drawer |
 | `openCart()` | Abre el drawer |
 | `closeCart()` | Cierra el drawer |
@@ -325,6 +390,55 @@ Al cargar desde Supabase, se normalizan campos snake_case a camelCase:
 - `temp_impresion` → `tempImpresion`
 - `temp_cama` → `tempCama`
 - Para accesorios: el campo `marca` de Supabase se mapea como `categoria`
+
+---
+
+### `useAuthStore` — Autenticación Google OAuth
+
+**Estado:**
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `session` | `Object\|null` | Sesión de Supabase Auth |
+| `perfil` | `Object\|null` | Datos de `public.perfiles` |
+| `esAdmin` | `boolean` | `TRUE` si el usuario tiene `es_admin = TRUE` |
+| `cargando` | `boolean` | `TRUE` mientras se inicializa la sesión |
+
+**Acciones:**
+
+| Función | Descripción |
+|---|---|
+| `inicializar()` | Llama `getSession()` y configura `onAuthStateChange`. Llamar 1 vez en App.jsx |
+| `cargarPerfil(userId)` | Lee `perfiles` por ID. Si no existe, lo crea automáticamente |
+| `loginConGoogle()` | Abre el flujo OAuth de Google (redirect) |
+| `logout()` | Cierra sesión y limpia estado |
+| `actualizarPerfil(datos)` | UPDATE en `perfiles` (nombre, teléfono) |
+
+---
+
+### `useReservasStore` — Reservas temporales
+
+**Estado:**
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `reservas` | `Array` | Reservas activas del usuario actual |
+| `reservasActivas` | `Object` | `{ [productoId]: reserva }` — mapa para consulta rápida |
+| `reservasGlobal` | `Object` | `{ [productoId]: reserva }` — todas las reservas activas (cualquier usuario) |
+| `cargando` | `boolean` | Loading |
+
+**Acciones:**
+
+| Función | Descripción |
+|---|---|
+| `cargarReservas()` | Carga reservas activas del usuario actual |
+| `cargarReservasGlobal()` | Carga todas las reservas activas (para badges en catálogo) |
+| `crearReserva(productoId, cantidad)` | Crea reserva en Supabase (30 min) |
+| `cancelarReserva(productoId)` | Marca reserva como `expirada` |
+| `limpiarExpiradas()` | Limpia reservas vencidas del estado local |
+| `tieneReserva(productoId)` | Getter: ¿el usuario actual reservó este producto? |
+| `estaReservado(productoId)` | Getter: ¿algún usuario reservó este producto? |
+| `segundosRestantes(productoId)` | Getter: segundos hasta que expire la reserva |
 
 ---
 
@@ -611,22 +725,46 @@ useStockStore.cargarPreciosPublicos()   ← se llama al iniciar App
         ├── catalogoImpresiones →  Tienda.jsx
         └── catalogoSTL         →  STL.jsx
 
-Usuario hace click "Agregar":
+useAuthStore.inicializar()  ← se llama al iniciar App
+        ├── getSession()  → detecta sesión existente o código OAuth del URL
+        ├── onAuthStateChange → escucha SIGNED_IN / SIGNED_OUT
+        └── cargarPerfil() → lee perfiles, determina esAdmin
+
+useReservasStore.cargarReservasGlobal()  ← se llama al iniciar App
+        └── reservasGlobal → FilamentCard muestra badge "🔒 Reservado · MM:SS"
+
+────────────────────────────────────────────
+ REGLA CLAVE: El carrito NO afecta el stock
+────────────────────────────────────────────
+Usuario agrega productos al carrito:
     FilamentCard/AccesorioCard
-        ├── useCartStore.addItem(product)       ← agrega al carrito
-        └── useStockStore.decreaseStock(id, 1)  ← descuenta stock local
+        └── useCartStore.addItem(product)    ← solo al estado local (NO toca stock)
 
-CartDrawer (reserva):
-        ├── Genera mensaje WhatsApp
-        └── window.open(wa.me/...)
+    El stock mostrado = stock real Supabase − reservas activas en DB
+    Múltiples usuarios pueden tener el mismo producto en carrito
+    El primero que reserve gana; el resto recibe error al intentar reservar
+────────────────────────────────────────────
 
-StockManager (admin):
-    Supabase Auth (email/password)
-        └── autenticado →
-            useStockStore.ingresarStock / egresarStock / ajustarStock
-                ├── UPDATE productos SET stock = ?  (Supabase)
-                ├── INSERT movimientos_stock         (Supabase)
-                └── set({ stock: ... })             (UI local)
+Usuario logueado → click "Reservar por WhatsApp":
+    CartDrawer.handleReservar()
+        ├── verifica sesión → si no hay, abre AuthModal
+        ├── por cada item: useReservasStore.crearReserva()
+        │       ├── INSERT reservas (30 min) ← AQUÍ se bloquea el stock en DB
+        │       └── reservasActivas / reservasGlobal actualizados
+        ├── reporta errores parciales (producto ya reservado por otro usuario)
+        ├── abre WhatsApp con el resumen del pedido
+        └── vacía y cierra el carrito
+
+Admin confirma venta:
+    AdminReservas.handleConfirmar(reservaId)
+        └── supabase.rpc('confirmar_compra')
+                ├── UPDATE productos SET stock = stock - cantidad  ← descuento REAL
+                ├── INSERT compras
+                └── UPDATE reservas SET estado = 'confirmada'
+
+Admin cancela reserva:
+    AdminReservas.handleCancelar(reservaId)
+        └── UPDATE reservas SET estado = 'expirada'  (libera el producto)
 ```
 
 ---
