@@ -93,7 +93,7 @@ const Home = () => {
       <section className={styles.aboutSection}>
         <div className={styles.aboutGrid}>
           <div className={styles.aboutImage}>
-            <img src="https://wknpfynfhfapxjxqbfpc.supabase.co/storage/v1/object/public/productos/impresiones/imp.jpg" alt="Impresora 3D TecMaker" />
+            <img src="/ender.jpg" alt="Impresora 3D Ender TecMaker" loading="lazy" />
           </div>
           <div>
             <Typography className={styles.sectionLabel}>SOBRE NOSOTROS</Typography>

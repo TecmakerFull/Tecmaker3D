@@ -44,6 +44,7 @@ const Contacto = () => {
                 { icon: '💬', label: 'WhatsApp — Lorena', val: '+54 9 341 606-8267', link: 'https://wa.me/5493416068267' },
                 { icon: '📱', label: 'Instagram', val: '@tecmaker.3d', link: 'https://www.instagram.com/tecmaker.3d/' },
                 { icon: '📘', label: 'Facebook', val: 'TecMaker 3D', link: 'https://www.facebook.com/profile.php?id=100087129600305' },
+                { icon: '📍', label: 'Ubicación', val: 'Lamadrid 650, Rosario, Santa Fe', link: 'https://maps.google.com/?q=Lamadrid+650,+Rosario,+Santa+Fe,+Argentina' },
                 { icon: '⏰', label: 'Horarios', val: 'Lun-Vie 9:00 - 19:00', link: null },
               ].map((item) => (
                 <div key={item.label} className={styles.infoItem}>
@@ -86,6 +87,18 @@ const Contacto = () => {
             </Button>
           </form>
         </div>
+      </div>
+
+      {/* Mapa Google Maps */}
+      <div className={styles.mapSection}>
+        <iframe
+          title="Ubicación TecMaker 3D"
+          src="https://maps.google.com/maps?q=Lamadrid+650,+Rosario,+Santa+Fe,+Argentina&z=16&output=embed"
+          className={styles.map}
+          loading="lazy"
+          allowFullScreen
+          referrerPolicy="no-referrer-when-downgrade"
+        />
       </div>
     </div>
   )
