@@ -9,8 +9,12 @@ import styles from './AccesorioCard.module.css'
 const AccesorioCard = ({ accesorio }) => {
   const [added, setAdded] = useState(false)
 
-  const addItem       = useCartStore((state) => state.addItem)
-  const stock         = useStockStore((state) => state.stock[accesorio.id] ?? 0)
+  const addItem   = useCartStore((state) => state.addItem)
+  const cartItems = useCartStore((state) => state.items)
+  const stock     = useStockStore((state) => state.stock[accesorio.id] ?? 0)
+
+  const enCarrito      = cartItems.find(i => i.id === accesorio.id)?.cantidad || 0
+  const limiteAlcanzado = enCarrito >= stock
 
   const getStockStatus = () => {
     if (stock === 0) return 'out'
@@ -30,7 +34,7 @@ const AccesorioCard = ({ accesorio }) => {
     }).format(precio)
 
   const handleAddToCart = () => {
-    if (stock === 0) return
+    if (stock === 0 || limiteAlcanzado) return
     addItem({ ...accesorio, marca: accesorio.categoria })
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
@@ -67,11 +71,11 @@ const AccesorioCard = ({ accesorio }) => {
           size="small"
           startIcon={added ? <CheckIcon /> : <AddShoppingCartIcon />}
           onClick={handleAddToCart}
-          disabled={stock === 0}
-          className={`${styles.addBtn} ${stock === 0 ? styles.addBtnDisabled : ''}`}
+          disabled={stock === 0 || limiteAlcanzado}
+          className={`${styles.addBtn} ${(stock === 0 || limiteAlcanzado) ? styles.addBtnDisabled : ''}`}
           id={`btn-agregar-${accesorio.id}`}
         >
-          {added ? '¡Agregado!' : stock === 0 ? 'Sin stock' : 'Agregar'}
+          {added ? '¡Agregado!' : stock === 0 ? 'Sin stock' : limiteAlcanzado ? 'Máx. en carrito' : 'Agregar'}
         </Button>
       </CardActions>
     </Card>

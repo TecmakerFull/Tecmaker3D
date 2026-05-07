@@ -11,8 +11,9 @@ const FilamentCard = ({ filamento }) => {
   const [added, setAdded] = useState(false)
   const [countdown, setCountdown] = useState('')
 
-  const addItem       = useCartStore((state) => state.addItem)
-  const stock         = useStockStore((state) => state.stock[filamento.id] ?? 0)
+  const addItem        = useCartStore((state) => state.addItem)
+  const cartItems      = useCartStore((state) => state.items)
+  const stock          = useStockStore((state) => state.stock[filamento.id] ?? 0)
   const reservasGlobal = useReservasStore((s) => s.reservasGlobal)
 
   const reserva = reservasGlobal[filamento.id]
@@ -34,6 +35,9 @@ const FilamentCard = ({ filamento }) => {
 
   // Los datos (precio, descripcion, imagen, etc.) vienen directamente de Supabase
   // a través del prop 'filamento' — sin merge, sin fallback al .js
+
+  // Cuántas unidades ya tiene el usuario en el carrito
+  const enCarrito = cartItems.find(i => i.id === filamento.id)?.cantidad || 0
 
   const stockDisponible = estaReservado
     ? Math.max(0, stock - (reserva?.cantidad || 1))
@@ -67,8 +71,11 @@ const FilamentCard = ({ filamento }) => {
       maximumFractionDigits: 0,
     }).format(precio)
 
+  // No se puede agregar más de lo que hay en stock
+  const limiteAlcanzado = enCarrito >= stockDisponible
+
   const handleAddToCart = () => {
-    if (stockDisponible === 0 || estaReservado) return
+    if (stockDisponible === 0 || estaReservado || limiteAlcanzado) return
     addItem({ ...filamento })
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
@@ -117,11 +124,11 @@ const FilamentCard = ({ filamento }) => {
           size="small"
           startIcon={added ? <CheckIcon /> : <AddShoppingCartIcon />}
           onClick={handleAddToCart}
-          disabled={stockDisponible === 0 || estaReservado}
-          className={`${styles.addBtn} ${(stockDisponible === 0 || estaReservado) ? styles.addBtnDisabled : ''} ${added ? styles.addedAnim : ''}`}
+          disabled={stockDisponible === 0 || estaReservado || limiteAlcanzado}
+          className={`${styles.addBtn} ${(stockDisponible === 0 || estaReservado || limiteAlcanzado) ? styles.addBtnDisabled : ''} ${added ? styles.addedAnim : ''}`}
           id={`btn-agregar-${filamento.id}`}
         >
-          {added ? '¡Agregado!' : estaReservado ? '🔒 Reservado' : stockDisponible === 0 ? 'Sin stock' : 'Agregar'}
+          {added ? '¡Agregado!' : estaReservado ? '🔒 Reservado' : (stockDisponible === 0 || limiteAlcanzado) ? 'Máx. en carrito' : 'Agregar'}
         </Button>
       </CardActions>
     </Card>

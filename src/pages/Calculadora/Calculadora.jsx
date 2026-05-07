@@ -324,8 +324,13 @@ ${filasMDO ? `<div class="section">
     }
     const { error } = await supabase.from('cotizaciones').insert(payload)
     setGuardando(false)
-    if (!error) { setGuardadoOk(true); setModalGuardar(false) }
-    else { console.error('Error guardando cotización:', error.message) }
+    setModalGuardar(false)   // siempre cierra el modal
+    if (!error) {
+      setGuardadoOk(true)
+    } else {
+      console.error('Error guardando cotización:', error.message)
+      alert(`No se pudo guardar la cotización.\n${error.message}\n\nVerificá que la tabla "cotizaciones" exista en Supabase.`)
+    }
   }
 
   // ── Estimación eléctrica en tiempo real ───────────────

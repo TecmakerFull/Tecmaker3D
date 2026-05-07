@@ -200,7 +200,9 @@ const CartDrawer = () => {
                     <Button
                       className={styles.qtyBtn}
                       onClick={() => handleIncrement(item)}
+                      disabled={item.cantidad >= stockDisponible(item)}
                       id={`btn-inc-${item.id}`}
+                      title={item.cantidad >= stockDisponible(item) ? 'Límite de stock alcanzado' : ''}
                     >
                       +
                     </Button>
