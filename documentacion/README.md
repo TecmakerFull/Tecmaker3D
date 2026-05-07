@@ -19,7 +19,8 @@
 10. [Páginas](#páginas)
 11. [Sistema de Autenticación](#sistema-de-autenticación)
 12. [Sistema de Reservas](#sistema-de-reservas)
-13. [Deploy y Configuración](#deploy-y-configuración)
+13. [Calculadora 3D](#calculadora-3d)
+14. [Deploy y Configuración](#deploy-y-configuración)
 
 ---
 
@@ -32,7 +33,7 @@
 | React Router DOM | 6.27.0 | Navegación SPA |
 | Zustand | 5.0.1 | Estado global |
 | Supabase JS | 2.105.1 | Base de datos + Auth |
-| MUI (Material UI) | 6.1.6 | Componentes UI |
+| MUI (Material UI) | 6.1.6 | Componentes UI e Iconos |
 | Axios | 1.7.7 | Peticiones HTTP externas |
 | CSS Modules | — | Estilos por componente |
 
@@ -47,6 +48,9 @@ TecMaker 3D/
 ├── vercel.json              # Config deploy Vercel (rewrites SPA)
 ├── .env                     # Variables de entorno (NO comitear)
 ├── package.json
+├── documentacion/
+│   ├── README.md            # Esta documentación
+│   └── estilos_globales.md  # Guía del sistema de diseño
 ├── public/
 │   ├── logo.png             # Logo TecMaker 3D
 │   ├── hexagons.png         # Fondo hexagonal decorativo
@@ -68,20 +72,23 @@ TecMaker 3D/
     │   ├── Navbar/          # Navegación principal (condicional según rol)
     │   ├── Footer/          # Pie de página
     │   ├── CartDrawer/      # Panel lateral del carrito + flujo de reserva
-    │   ├── FilamentCard/    # Tarjeta de producto con badge de reserva
+    │   ├── FilamentCard/    # Tarjeta de filamento con badge de reserva
     │   ├── AccesorioCard/   # Tarjeta de accesorio
     │   ├── Auth/            # LoginButton, UserMenu, AuthModal
     │   └── StockManager/    # Panel admin de stock (solo admin)
     └── pages/
         ├── Home/            # Página de inicio
-        ├── Filamentos/      # Catálogo de filamentos + filtros
+        ├── Filamentos/      # Catálogo de filamentos + sidebar de filtros
         ├── FilamentosConfig/# Especificaciones técnicas (API PubChem)
-        ├── Accesorios/      # Catálogo de accesorios
+        ├── Accesorios/      # Catálogo de accesorios + sidebar de filtros
         ├── Tienda/          # Productos impresos 3D
         ├── STL/             # Modelos STL + plataformas
+        ├── Calculadora/     # Calculadora de costos para impresión 3D
         ├── Contacto/        # Formulario de contacto
         ├── Perfil/          # Perfil de usuario + reservas + historial
-        └── AdminReservas/   # Panel admin: confirmar/cancelar reservas
+        ├── AdminReservas/   # Panel admin: confirmar/cancelar reservas
+        ├── AdminUsuarios/   # Panel admin: gestión de usuarios
+        └── AdminVentas/     # Panel admin: historial de ventas
 ```
 
 ---
@@ -95,9 +102,9 @@ TecMaker 3D/
 |---|---|---|
 | `id` | int | PK |
 | `nombre` | text | Nombre del producto |
-| `marca` | text | Marca (o categoría para accesorios) |
+| `marca` | text | Marca del filamento. Para accesorios, este campo almacena la **categoría** |
 | `tipo` | text | `filamento` / `accesorio` / `impresion` / `stl` |
-| `material` | text | PLA, PETG, TPU, etc. |
+| `material` | text | PLA, PETG, TPU, etc. (solo filamentos) |
 | `color` | text | Color del filamento |
 | `precio` | numeric | Precio en ARS |
 | `descripcion` | text | Descripción |
@@ -110,6 +117,8 @@ TecMaker 3D/
 | `link_compra` | text | Link externo (STL → Cults3D) |
 | `stock` | int | Unidades disponibles |
 | `activo` | boolean | Si aparece en el catálogo público |
+
+> **Categorías de accesorios** (`marca`): `Insumos para 3D` (cobrable al cliente) / `Partes Impresora` (repuestos internos, no se muestran en la Calculadora).
 
 #### `movimientos_stock`
 | Campo | Tipo | Descripción |
@@ -155,6 +164,32 @@ TecMaker 3D/
 | `cantidad` | int | Unidades compradas |
 | `total` | numeric | Precio total |
 | `created_at` | timestamp | Fecha de compra |
+
+#### `cotizaciones`
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | uuid | PK |
+| `usuario_id` | uuid | FK → auth.users.id |
+| `nombre_producto` | text | Nombre del presupuesto (opcional) |
+| `cliente` | text | Nombre del cliente (opcional) |
+| `impresora_nombre` | text | Modelo de impresora seleccionado |
+| `consumo_w` | numeric | Consumo eléctrico en Watts |
+| `desgaste_hora` | numeric | Amortización por hora en ARS |
+| `horas_imp` | numeric | Horas de impresión |
+| `minutos_imp` | numeric | Minutos de impresión |
+| `tarifa_kwh` | numeric | Tarifa eléctrica en ARS/kWh |
+| `margen` | numeric | Porcentaje de ganancia |
+| `materiales` | jsonb | Array de filas de materiales |
+| `accesorios` | jsonb | Array de filas de accesorios |
+| `mano_de_obra` | jsonb | Array de filas de MDO |
+| `costo_materiales` | numeric | Subtotal materiales |
+| `costo_accesorios` | numeric | Subtotal accesorios |
+| `costo_mdo` | numeric | Subtotal mano de obra |
+| `costo_electrico` | numeric | Subtotal electricidad |
+| `costo_amortizacion` | numeric | Subtotal amortización |
+| `costo_total` | numeric | Costo total base |
+| `precio_final` | numeric | Precio sugerido al cliente |
+| `created_at` | timestamp | Fecha de guardado |
 
 ### Función SQL: `confirmar_compra(p_reserva_id)`
 
@@ -294,15 +329,18 @@ Configuradas en `src/App.jsx`. `<BrowserRouter>` vive en `main.jsx`.
 | Ruta | Componente | Descripción |
 |---|---|---|
 | `/` | `Home` | Página de inicio con hero, stats y categorías |
-| `/filamentos` | `Filamentos` | Catálogo de filamentos con filtros |
+| `/filamentos` | `Filamentos` | Catálogo de filamentos con sidebar de filtros |
 | `/filamentos/configuraciones` | `FilamentosConfig` | Especificaciones técnicas via API PubChem |
-| `/accesorios` | `Accesorios` | Catálogo de accesorios con filtros |
+| `/accesorios` | `Accesorios` | Catálogo de accesorios con sidebar de filtros |
 | `/tienda` | `Tienda` | Productos impresos en 3D |
 | `/stl` | `STL` | Modelos STL y plataformas externas |
+| `/calculadora` | `Calculadora` | Calculadora de costos de impresión 3D |
 | `/contacto` | `Contacto` | Formulario de contacto vía WhatsApp |
 | `/perfil` | `Perfil` | Perfil de usuario, reservas activas e historial |
 | `/admin/stock` | `StockManager` | Panel de stock (solo admin) |
 | `/admin/reservas` | `AdminReservas` | Panel de reservas activas (solo admin) |
+| `/admin/usuarios` | `AdminUsuarios` | Panel de usuarios registrados (solo admin) |
+| `/admin/ventas` | `AdminVentas` | Panel de historial de ventas (solo admin) |
 | `*` | inline 404 | Página no encontrada con link a inicio |
 
 > La ruta `/filamentos/configuraciones` es una **sub-ruta anidada** (`<Outlet />`) dentro de `/filamentos`.
@@ -391,6 +429,11 @@ Al cargar desde Supabase, se normalizan campos snake_case a camelCase:
 - `temp_cama` → `tempCama`
 - Para accesorios: el campo `marca` de Supabase se mapea como `categoria`
 
+**Filtrado por tipo en componentes:**
+- `catalogoFilamentos` → página Filamentos y Calculadora
+- `catalogoAccesorios` → página Accesorios completa
+- `accesoriosParaCliente` → subconjunto de accesorios usado en la Calculadora: excluye los de categoría `Partes Impresora` para evitar mostrar repuestos en presupuestos al cliente
+
 ---
 
 ### `useAuthStore` — Autenticación Google OAuth
@@ -477,7 +520,10 @@ const { data, loading, error } = useFetch(url, retryKey)
 - Menú hamburguesa para mobile (`menuOpen` state)
 - Usa `<NavLink>` de React Router para resaltar la ruta activa
 - Muestra badge con cantidad de items en el carrito (desde `useCartStore`)
-- Links: Inicio / Filamentos / Accesorios / Tienda / STL / Contacto / 📦 Stock (admin)
+- Links principales: Inicio / Filamentos / Accesorios / Tienda / STL / Contacto
+- Links de acción: 🛒 Carrito / Iniciar sesión
+- Links admin (visible solo si `esAdmin`): Stock / Reservas / Usuarios / Ventas
+- La **Calculadora** tiene su propio link desde la Home y también es accesible desde el nav
 
 **Props:** ninguna
 
@@ -589,10 +635,12 @@ const { data, loading, error } = useFetch(url, retryKey)
 
 Página de inicio con 4 secciones:
 
-1. **Hero:** Badge, título "Materializando Ideas", logo animado, subtítulo, CTAs (Ver Filamentos / Ver Tienda)
+1. **Hero:** Badge, título "Materializando Ideas", logo animado, subtítulo, CTAs (Ver Filamentos / Calculadora 3D)
 2. **Stats:** 24+ Filamentos | 5 Marcas | 3 Tipos | 100% Calidad
-3. **Categorías:** Grid de 4 cards (Filamentos, Accesorios, Tienda, STL) con links internos
+3. **Categorías:** Grid de 4 cards coloridas con icono grande (Filamentos, Accesorios, Tienda, STL) con links internos
 4. **Sobre Nosotros:** Imagen de impresora + texto descriptivo + links a plataformas STL
+
+> Las cards de categoría tienen un color temático con fondo translúcido y efecto hover de escala.
 
 ---
 
@@ -600,15 +648,20 @@ Página de inicio con 4 secciones:
 
 **Funcionalidad:**
 - Carga `catalogoFilamentos` desde `useStockStore`
-- Sub-navegación: **📦 Catálogo** | **🔬 Especificaciones Técnicas (API)**
+- Sub-navegación: **Catálogo** | **Especificaciones Técnicas (API)**
 - Si la ruta es `/filamentos/configuraciones`, renderiza `<Outlet />` (FilamentosConfig)
-- Si es `/filamentos`, muestra:
-  - **Filtros dinámicos** por marca (botones generados desde los datos)
-  - **Filtros dinámicos** por material (PLA, PETG, Silk, etc.)
-  - **Buscador** por nombre, marca o color (case-insensitive)
-  - Contador "Mostrando X de Y filamentos"
-  - **Grid de `<FilamentCard />`**
-- Todos los filtros usan `useMemo` para rendimiento
+- Si es `/filamentos`, muestra un **layout de dos columnas** (sidebar + grilla):
+  - **Sidebar izquierda:**
+    - Buscador por nombre, marca o color
+    - Filtro **Marca** (pills en columna vertical, generados dinámicamente)
+    - Filtro **Material** (pills en columna vertical)
+    - Filtro **Color** (pills en columna vertical)
+    - Botón "Limpiar" visible solo cuando hay filtros activos
+  - **Área de productos:**
+    - Contador "X de Y filamentos"
+    - Grilla de `<FilamentCard />`
+- En mobile (≤900px): la sidebar se convierte en un **drawer deslizante** accesible desde el botón "Filtros"
+- Todos los filtros usan `useMemo` para rendimiento y soportan combinación simultánea
 
 ---
 
@@ -643,9 +696,13 @@ Usa el **custom hook `useFetch`** con Axios.
 
 **Funcionalidad:**
 - Carga `catalogoAccesorios` desde `useStockStore`
-- **Filtros dinámicos** por categoría (generados desde los datos de Supabase)
-- Grid de `<AccesorioCard />`
-- Contador de resultados
+- **Layout de dos columnas** igual al de Filamentos:
+  - **Sidebar izquierda:** buscador + filtro **Categoría** (pills en columna)
+  - **Grilla** de `<AccesorioCard />`
+- Botón "Filtros" + drawer deslizante en mobile
+- Acento de color índigo/violeta (`#818cf8`) para distinguirlo visualmente de Filamentos
+
+> Las categorías se extraen dinámicamente del catálogo. Actualmente: `Insumos para 3D` y `Partes Impresora`.
 
 ---
 
@@ -682,6 +739,60 @@ Usa el **custom hook `useFetch`** con Axios.
 - **Formulario:** Nombre, Email, Asunto, Mensaje (todos requeridos)
 - Al enviar: genera mensaje formateado y abre WhatsApp (`wa.me/5493415866464`)
 - Después de enviar: limpia el formulario
+
+---
+
+## Calculadora 3D — `/calculadora`
+
+Herramienta para calcular el costo de un trabajo de impresión 3D y generar un precio de venta sugerido.
+
+### Layout
+
+Dos columnas persistentes (sin scroll horizontal):
+- **Izquierda:** Materiales, Accesorios, Mano de Obra, Desglose de Costos
+- **Derecha:** Impresora, Tiempo, Tarifa eléctrica, Cliente, Precio de Venta
+
+### Secciones
+
+| Sección | Descripción |
+|---|---|
+| **Materiales** | Selecciona filamentos del catálogo (con precio/kg auto) o ingresa costo manual. Especifica gramos a usar. Acepta múltiples filas. |
+| **Accesorios** | Selecciona accesorios de la categoría `Insumos para 3D` del catálogo, o ingresa costo manual. Los `Partes Impresora` están excluidos. |
+| **Mano de Obra** | Descripción libre, horas y tarifa por hora. Múltiples tareas. |
+| **Impresora** | Selector de 10 modelos predefinidos (Bambu, Creality, Prusa, Elegoo) + modo personalizado. Auto-completa consumo W y desgaste $/h. |
+| **Tiempo** | Horas + minutos de impresión. |
+| **Tarifa eléctrica** | $/kWh, con valor sugerido basado en tarifa EPE Rosario. |
+| **Cliente** | Campo opcional para el nombre del cliente (aparece en el PDF). |
+| **Desglose** | Muestra cada componente de costo: materiales, accesorios, MDO, electricidad, amortización impresora y costo total base. |
+| **Precio de Venta** | Slider de margen 0–300%. Muestra ganancia en $ y precio final sugerido. |
+
+### Cálculo
+
+```
+costoElectrico    = (consumoW / 1000) × horas × tarifaKwh
+costoAmortizacion = desgasteHora × horas
+costoMateriales   = Σ (precioKg / 1000) × gramos
+costoAccesorios   = Σ precio × cantidad
+costoMDO          = Σ horas × tarifa
+costoTotal        = costoMateriales + costoAccesorios + costoMDO + costoElectrico + costoAmortizacion
+precioFinal       = costoTotal × (1 + margen / 100)
+```
+
+### Acciones
+
+| Botón | Descripción |
+|---|---|
+| **Guardar** | Guarda la cotización en la tabla `cotizaciones` de Supabase (requiere login) |
+| **Reiniciar** | Limpia todos los campos al estado inicial |
+| **PDF** | Genera un PDF estructurado en una ventana aparte con tablas de materiales, accesorios, MDO, desglose y precio final con marca TecMaker 3D |
+
+### Protección del modal de nuevo producto
+
+El modal `NuevoProductoModal` (admin) detecta si hay datos cargados (`hasData`). Si el usuario intenta cerrar con datos sin guardar (clic fuera o ×), muestra un **banner de confirmación** con opciones "Seguir editando" / "Sí, descartar".
+
+### Campo Categoría en NuevoProductoModal
+
+Cuando el tipo seleccionado es **Accesorio**, el campo "Categoría" muestra un `<select>` con las categorías existentes extraídas del catálogo. Al elegir `+ Nueva categoría`, aparece un input de texto libre. La nueva categoría se persiste en Supabase al guardar el producto y estará disponible automáticamente en futuros formularios.
 
 ---
 

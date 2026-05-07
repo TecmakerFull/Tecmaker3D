@@ -1,4 +1,4 @@
-# TecMaker 3D 🖨️
+# TecMaker 3D
 
 > Plataforma de e-commerce para venta de filamentos, accesorios e impresiones 3D.
 
@@ -8,20 +8,25 @@
 
 ## Stack
 
-`React 18` · `Vite` · `React Router` · `Zustand` · `Supabase` · `MUI` · `Google OAuth`
+`React 18` · `Vite` · `React Router` · `Zustand` · `Supabase` · `MUI Icons` · `Google OAuth` · `CSS Modules`
 
-## Funcionalidades principales
+## Funcionalidades
 
-- 🛒 Catálogo de filamentos y accesorios con filtros y búsqueda
+- 🧵 Catálogo de filamentos con sidebar de filtros (Marca, Material, Color) y búsqueda
+- ⚙️ Catálogo de accesorios con sidebar de filtros por categoría
 - 🔐 Login con Google — reservas vinculadas al usuario
-- ⏱️ Sistema de reservas temporales (30 min) con countdown
-- 📱 Envío de pedido por WhatsApp
-- 👤 Perfil de usuario con historial de compras
-- 🛠️ Panel admin: gestión de stock y confirmación de reservas
+- ⏱️ Sistema de reservas temporales (30 min) con countdown en tiempo real
+- 📱 Envío de pedido por WhatsApp con resumen de productos
+- 👤 Perfil de usuario con reservas activas e historial de compras
+- 🧮 **Calculadora 3D**: costo de impresión con materiales, accesorios, MDO, electricidad y amortización de impresora — exporta PDF estructurado
+- 💾 Guardado de cotizaciones en Supabase (requiere login)
+- 🛠️ Panel admin: stock, reservas, usuarios y ventas
+- 🔒 Protección contra cierre accidental en formularios con datos cargados
 
-## Documentación completa
+## Documentación
 
-📄 [Ver documentación técnica completa](./documentacion/README.md)
+📄 [Documentación técnica completa](./documentacion/README.md)
+🎨 [Sistema de diseño y estilos](./documentacion/estilos_globales.md)
 
 ---
 
