@@ -90,6 +90,110 @@
   background: rgba(245, 158, 11, 0.12);
 }
 
+/* Calculadora — destacado con borde sutil */
+.navLinkCalc {
+  border: 1px solid rgba(245,158,11,0.2);
+}
+.navLinkCalc:hover {
+  border-color: rgba(245,158,11,0.4);
+}
+
+/* Admin — borde rojo sutil */
+.adminBtn {
+  border: 1px solid rgba(239,68,68,0.2);
+  color: #fca5a5 !important;
+}
+.adminBtn:hover {
+  border-color: rgba(239,68,68,0.4);
+  background: rgba(239,68,68,0.08) !important;
+  color: #ef4444 !important;
+}
+
+/* ── Dropdown Tienda ───────────────────── */
+.dropdownWrap {
+  position: relative;
+}
+
+.dropdownBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.dropdownArrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
+  margin-top: 1px;
+}
+
+.dropdownArrowOpen {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: rgba(12, 12, 12, 0.97);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 12px;
+  padding: 0.5rem;
+  list-style: none;
+  min-width: 200px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  z-index: 999;
+  animation: dropIn 0.15s ease;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdownLink {
+  display: block;
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.dropdownLink:hover {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.dropdownLinkActive {
+  color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+/* Ícono SVG dentro del dropdown */
+.dropdownIcon {
+  font-size: 1rem !important;
+  width: 16px !important;
+  height: 16px !important;
+  opacity: 0.75;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.dropdownLink:hover .dropdownIcon,
+.dropdownLinkActive .dropdownIcon {
+  opacity: 1;
+}
+
 .navActions {
   display: flex;
   align-items: center;
@@ -186,4 +290,34 @@
   .cartBtn {
     padding: 0.5rem 0.65rem !important;
   }
+
+  /* Ocultar dropdown en mobile (se usa mobileOnly en su lugar) */
+  .dropdownWrap { display: none; }
+}
+
+/* Desktop: ocultar bloque mobile */
+.mobileOnly { display: none; }
+
+@media (max-width: 768px) {
+  .mobileOnly {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.25rem;
+  }
+}
+
+.mobileSection {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem 0.25rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.mobileSubLink {
+  padding-left: 1.5rem !important;
+  font-size: 0.85rem !important;
 }

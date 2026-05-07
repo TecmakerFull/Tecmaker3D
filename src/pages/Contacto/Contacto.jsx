@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { Typography, Button } from '@mui/material'
+import WhatsAppIcon        from '@mui/icons-material/WhatsApp'
+import InstagramIcon       from '@mui/icons-material/Instagram'
+import FacebookIcon        from '@mui/icons-material/Facebook'
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined'
+import MailOutlineIcon     from '@mui/icons-material/MailOutline'
 import styles from './Contacto.module.css'
 
 const WHATSAPP_CONTACTO = '5493415866464'
@@ -28,7 +34,7 @@ const Contacto = () => {
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
-        <span className={styles.label}>📬 CONTACTO</span>
+        <span className={styles.label}><MailOutlineIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.5 }} /> CONTACTO</span>
         <Typography component="h1" className={styles.title}>Contactanos</Typography>
         <Typography className={styles.subtitle}>¿Tenés alguna consulta? Estamos para ayudarte.</Typography>
       </div>
@@ -40,15 +46,15 @@ const Contacto = () => {
             <Typography className={styles.infoTitle}>¿Cómo podemos ayudarte?</Typography>
             <div className={styles.infoItems}>
               {[
-                { icon: '💬', label: 'WhatsApp — Enrique', val: '+54 9 341 586-6464', link: 'https://wa.me/5493415866464' },
-                { icon: '💬', label: 'WhatsApp — Lorena', val: '+54 9 341 606-8267', link: 'https://wa.me/5493416068267' },
-                { icon: '📱', label: 'Instagram', val: '@tecmaker.3d', link: 'https://www.instagram.com/tecmaker.3d/' },
-                { icon: '📘', label: 'Facebook', val: 'TecMaker 3D', link: 'https://www.facebook.com/profile.php?id=100087129600305' },
-                { icon: '📍', label: 'Ubicación', val: 'Lamadrid 650, Rosario, Santa Fe', link: 'https://maps.google.com/?q=Lamadrid+650,+Rosario,+Santa+Fe,+Argentina' },
-                { icon: '⏰', label: 'Horarios', val: 'Lun-Vie 9:00 - 19:00', link: null },
+                { Icon: WhatsAppIcon,          label: 'WhatsApp — Enrique', val: '+54 9 341 586-6464', link: 'https://wa.me/5493415866464' },
+                { Icon: WhatsAppIcon,          label: 'WhatsApp — Lorena',  val: '+54 9 341 606-8267', link: 'https://wa.me/5493416068267' },
+                { Icon: InstagramIcon,         label: 'Instagram',          val: '@tecmaker.3d',        link: 'https://www.instagram.com/tecmaker.3d/' },
+                { Icon: FacebookIcon,          label: 'Facebook',           val: 'TecMaker 3D',         link: 'https://www.facebook.com/profile.php?id=100087129600305' },
+                { Icon: LocationOnOutlinedIcon,label: 'Ubicación',          val: 'Lamadrid 650, Rosario, Santa Fe', link: 'https://maps.google.com/?q=Lamadrid+650,+Rosario,+Santa+Fe,+Argentina' },
+                { Icon: AccessTimeOutlinedIcon,label: 'Horarios',           val: 'Lun-Vie 9:00 - 19:00', link: null },
               ].map((item) => (
                 <div key={item.label} className={styles.infoItem}>
-                  <span className={styles.infoIcon}>{item.icon}</span>
+                  <span className={styles.infoIcon}><item.Icon fontSize="small" /></span>
                   <div>
                     <p className={styles.infoLabel}>{item.label}</p>
                     {item.link ? (

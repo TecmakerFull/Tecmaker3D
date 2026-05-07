@@ -1,5 +1,6 @@
 import { Typography, CircularProgress } from '@mui/material'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
+import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation'
 import useStockStore from '../../stores/useStockStore'
 import styles from './Tienda.module.css'
 
@@ -17,7 +18,7 @@ const Tienda = () => {
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
-        <span className={styles.label}>🛍️ TIENDA</span>
+        <span className={styles.label}><ThreeDRotationIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.5 }} /> IMPRESIONES 3D</span>
         <Typography component="h1" className={styles.title}>Productos Impresos en 3D</Typography>
         <Typography className={styles.subtitle}>Figuras, accesorios y piezas únicas listas para llevar</Typography>
       </div>

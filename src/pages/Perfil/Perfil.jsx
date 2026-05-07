@@ -3,6 +3,13 @@ import { CircularProgress } from '@mui/material'
 import useAuthStore from '../../stores/useAuthStore'
 import useReservasStore from '../../stores/useReservasStore'
 import { supabase } from '../../lib/supabase'
+import WavingHandOutlinedIcon   from '@mui/icons-material/WavingHandOutlined'
+import EditOutlinedIcon         from '@mui/icons-material/EditOutlined'
+import SaveOutlinedIcon         from '@mui/icons-material/SaveOutlined'
+import AccessTimeOutlinedIcon   from '@mui/icons-material/AccessTimeOutlined'
+import ReceiptLongOutlinedIcon  from '@mui/icons-material/ReceiptLongOutlined'
+import ShoppingBagOutlinedIcon  from '@mui/icons-material/ShoppingBagOutlined'
+import TimerOutlinedIcon        from '@mui/icons-material/TimerOutlined'
 import styles from './Perfil.module.css'
 
 // ============================================================
@@ -16,6 +23,8 @@ const Perfil = () => {
 
   const [compras,       setCompras]       = useState([])
   const [cargandoHist,  setCargandoHist]  = useState(true)
+  const [cotizaciones,  setCotizaciones]  = useState([])
+  const [cargandoCot,   setCargandoCot]   = useState(true)
   const [editando,      setEditando]      = useState(false)
   const [formPerfil,    setFormPerfil]    = useState({ nombre: '', telefono: '' })
   const [guardandoPerf, setGuardandoPerf] = useState(false)
@@ -25,6 +34,7 @@ const Perfil = () => {
     if (!session) return
     cargarReservas()
     cargarHistorial()
+    cargarCotizaciones()
   }, [session])
 
   // Inicializar form de perfil
@@ -60,6 +70,22 @@ const Perfil = () => {
     setCargandoHist(false)
   }
 
+  const cargarCotizaciones = async () => {
+    setCargandoCot(true)
+    const { data } = await supabase
+      .from('cotizaciones')
+      .select('id, created_at, nombre_producto, cliente, precio_final, costo_total, margen, impresora_nombre')
+      .eq('usuario_id', session.user.id)
+      .order('created_at', { ascending: false })
+    setCotizaciones(data || [])
+    setCargandoCot(false)
+  }
+
+  const eliminarCotizacion = async (id) => {
+    await supabase.from('cotizaciones').delete().eq('id', id)
+    setCotizaciones(prev => prev.filter(c => c.id !== id))
+  }
+
   const handleGuardarPerfil = async (e) => {
     e.preventDefault()
     setGuardandoPerf(true)
@@ -91,7 +117,7 @@ const Perfil = () => {
         <div className={styles.heroBg} />
         <div className={styles.heroContent}>
           <span className={styles.badge}>MI CUENTA</span>
-          <h1 className={styles.titulo}>Hola, {nombre.split(' ')[0]} 👋</h1>
+          <h1 className={styles.titulo}>Hola, {nombre.split(' ')[0]} <WavingHandOutlinedIcon sx={{ fontSize: '1.6rem', verticalAlign: 'middle', color: '#f59e0b' }} /></h1>
         </div>
       </div>
 
@@ -102,7 +128,7 @@ const Perfil = () => {
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Mi perfil</h2>
             {!editando && (
-              <button className={styles.editBtn} onClick={() => setEditando(true)}>✏️ Editar</button>
+              <button className={styles.editBtn} onClick={() => setEditando(true)}><EditOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} /> Editar</button>
             )}
           </div>
 
@@ -138,7 +164,7 @@ const Perfil = () => {
               <div className={styles.editActions}>
                 <button type="button" className={styles.cancelBtn} onClick={() => setEditando(false)}>Cancelar</button>
                 <button type="submit" className={styles.saveBtn} disabled={guardandoPerf}>
-                  {guardandoPerf ? <CircularProgress size={14} sx={{ color: '#f59e0b' }} /> : '💾 Guardar'}
+                  {guardandoPerf ? <CircularProgress size={14} sx={{ color: '#f59e0b' }} /> : <><SaveOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} /> Guardar</>}
                 </button>
               </div>
             </form>
@@ -159,7 +185,7 @@ const Perfil = () => {
         {/* ── Reservas activas ── */}
         <section className={styles.card} id="reservas">
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>⏱ Reservas activas</h2>
+            <h2 className={styles.cardTitle}><AccessTimeOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.4 }} /> Reservas activas</h2>
             {reservasActivas.length > 0 && (
               <span className={styles.countBadge}>{reservasActivas.length}</span>
             )}
@@ -178,7 +204,7 @@ const Perfil = () => {
                     <span className={styles.reservaCantidad}>× {r.cantidad}</span>
                   </div>
                   <div className={styles.reservaRight}>
-                    <span className={styles.reservaTimer}>⏳ {countdowns[r.id]}</span>
+                    <span className={styles.reservaTimer}><TimerOutlinedIcon sx={{ fontSize: '0.85rem', verticalAlign: 'middle', mr: 0.2 }} /> {countdowns[r.id]}</span>
                     <button
                       className={styles.cancelReservaBtn}
                       onClick={() => cancelarReserva(r.producto_id)}
@@ -192,10 +218,45 @@ const Perfil = () => {
           )}
         </section>
 
+        {/* ── Cotizaciones ── */}
+        <section className={`${styles.card} ${styles.cardFull}`}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}><ReceiptLongOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.4 }} /> Mis Cotizaciones</h2>
+            {!cargandoCot && <span className={styles.countBadge}>{cotizaciones.length}</span>}
+          </div>
+          {cargandoCot ? (
+            <div className={styles.loading}><CircularProgress size={24} sx={{ color: '#f59e0b' }} /></div>
+          ) : cotizaciones.length === 0 ? (
+            <p className={styles.emptyMsg}>No tenés presupuestos guardados todavía.</p>
+          ) : (
+            <div className={styles.comprasList}>
+              {cotizaciones.map(c => (
+                <div key={c.id} className={styles.compraItem}>
+                  <div className={styles.compraInfo}>
+                    <span className={styles.compraNombre}>{c.nombre_producto || 'Sin nombre'}</span>
+                    {c.cliente && <span className={styles.compraMarca}>Cliente: {c.cliente}</span>}
+                    <span className={styles.compraMarca}>{c.impresora_nombre}</span>
+                  </div>
+                  <div className={styles.compraDetalles}>
+                    <span className={styles.compraTotal}>{formatPrecio(c.precio_final)}</span>
+                    <span className={styles.compraCantidad}>{c.margen}% margen</span>
+                    <span className={styles.compraFecha}>{formatFecha(c.created_at)}</span>
+                    <button
+                      onClick={() => eliminarCotizacion(c.id)}
+                      style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', fontSize:'1rem' }}
+                      title="Eliminar"
+                    >×</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* ── Historial de compras ── */}
         <section className={`${styles.card} ${styles.cardFull}`}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>🛍️ Historial de compras</h2>
+            <h2 className={styles.cardTitle}><ShoppingBagOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.4 }} /> Historial de compras</h2>
           </div>
 
           {cargandoHist ? (

@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-// ====================================================
-// useFetch — Custom Hook para peticiones HTTP
-// Consigna TP3: Manejo de loading, data y error
-// Encapsula la lógica de llamadas a API externa
-// ====================================================
 
 /**
  * Custom Hook para realizar peticiones GET a una URL.

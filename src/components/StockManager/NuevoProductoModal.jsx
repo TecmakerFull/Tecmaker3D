@@ -1,6 +1,15 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { CircularProgress } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
+import CloseIcon                from '@mui/icons-material/Close'
+import SupportIcon              from '@mui/icons-material/Support'
+import ConstructionOutlinedIcon from '@mui/icons-material/ConstructionOutlined'
+import ThreeDRotationIcon       from '@mui/icons-material/ThreeDRotation'
+import ViewInArOutlinedIcon     from '@mui/icons-material/ViewInArOutlined'
+import ImageOutlinedIcon        from '@mui/icons-material/ImageOutlined'
+import UploadFileOutlinedIcon   from '@mui/icons-material/UploadFileOutlined'
+import CheckCircleOutlinedIcon  from '@mui/icons-material/CheckCircleOutlined'
+import SaveOutlinedIcon         from '@mui/icons-material/SaveOutlined'
+import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import useStockStore from '../../stores/useStockStore'
 import styles from './NuevoProductoModal.module.css'
 
@@ -9,10 +18,10 @@ import styles from './NuevoProductoModal.module.css'
 // ============================================================
 
 const TIPOS = [
-  { value: 'filamento',  label: '🧵 Filamento' },
-  { value: 'accesorio',  label: '⚙️ Accesorio' },
-  { value: 'impresion',  label: '🛍️ Impresión 3D' },
-  { value: 'stl',        label: '📐 Archivo STL' },
+  { value: 'filamento', label: 'Filamento', Icon: SupportIcon },
+  { value: 'accesorio', label: 'Accesorio', Icon: ConstructionOutlinedIcon },
+  { value: 'impresion', label: 'Impresión 3D', Icon: ThreeDRotationIcon },
+  { value: 'stl',       label: 'Archivo STL', Icon: ViewInArOutlinedIcon },
 ]
 
 const MATERIALES = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'HIPS', 'Nylon', 'Silk PLA', 'Marble PLA', 'Wood PLA', 'Otro']
@@ -38,15 +47,27 @@ const INITIAL_FORM = {
 }
 
 const NuevoProductoModal = ({ onClose, onSuccess }) => {
-  const crearProducto = useStockStore((s) => s.crearProducto)
+  const crearProducto    = useStockStore((s) => s.crearProducto)
+  const catalogoAccesorios = useStockStore((s) => s.catalogoAccesorios)
 
-  const [form, setForm]             = useState(INITIAL_FORM)
-  const [imagenFile, setImagenFile] = useState(null)
-  const [preview, setPreview]       = useState('')
-  const [guardando, setGuardando]   = useState(false)
-  const [error, setError]           = useState('')
-  const [ok, setOk]                 = useState(false)
+  // Categorías únicas extraídas de la BD
+  const categoriasExistentes = useMemo(
+    () => [...new Set(catalogoAccesorios.map(a => a.categoria).filter(Boolean))].sort(),
+    [catalogoAccesorios]
+  )
+
+  const [form, setForm]               = useState(INITIAL_FORM)
+  const [imagenFile, setImagenFile]   = useState(null)
+  const [preview, setPreview]         = useState('')
+  const [guardando, setGuardando]     = useState(false)
+  const [error, setError]             = useState('')
+  const [ok, setOk]                   = useState(false)
+  const [nuevaCat, setNuevaCat]       = useState(false)
+  const [confirmClose, setConfirmClose] = useState(false) // mini confirm de descarte
   const fileRef = useRef()
+
+  // Tiene datos si algún campo relevante está lleno
+  const hasData = form.nombre.trim() || form.marca.trim() || form.precio || imagenFile || form.imagen.trim()
 
   const isFilamento  = form.tipo === 'filamento'
   const isAccesorio  = form.tipo === 'accesorio'
@@ -60,7 +81,18 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
 
   const handleTipo = (tipo) => {
     setForm({ ...INITIAL_FORM, tipo, diametro: '1.75mm' })
+    setNuevaCat(false)
+    setConfirmClose(false)
     setError('')
+  }
+
+  // Cierre seguro: si hay datos pide confirmación; si no, cierra directo
+  const handleClose = () => {
+    if (hasData) {
+      setConfirmClose(true)
+    } else {
+      onClose()
+    }
   }
 
   const handleFile = (e) => {
@@ -116,7 +148,7 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
   }
 
   return (
-    <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && handleClose()}>
       <div className={styles.modal} role="dialog" aria-modal="true">
 
         {/* Header */}
@@ -126,10 +158,21 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
             <h2 className={styles.modalTitle}>Nuevo Producto</h2>
             <p className={styles.modalSubtitle}>Completá los campos y se guardará en Supabase</p>
           </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Cerrar">
+          <button className={styles.closeBtn} onClick={handleClose} aria-label="Cerrar">
             <CloseIcon fontSize="small" />
           </button>
         </div>
+
+        {/* Mini confirmación de descarte */}
+        {confirmClose && (
+          <div className={styles.discardBanner}>
+            <span className={styles.discardText}>¿Descartar los datos cargados?</span>
+            <div className={styles.discardActions}>
+              <button type="button" className={styles.discardCancel} onClick={() => setConfirmClose(false)}>Seguir editando</button>
+              <button type="button" className={styles.discardConfirm} onClick={onClose}>Sí, descartar</button>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className={styles.form}>
 
@@ -145,6 +188,7 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
                   onClick={() => handleTipo(t.value)}
                   id={`tipo-${t.value}`}
                 >
+                  <t.Icon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.4 }} />
                   {t.label}
                 </button>
               ))}
@@ -170,14 +214,59 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
               <label className={styles.fieldLabel}>
                 {isAccesorio ? 'Categoría' : 'Marca'} <span className={styles.req}>*</span>
               </label>
-              <input
-                name="marca"
-                className={styles.input}
-                placeholder={isAccesorio ? 'Ej: Nozzles' : 'Ej: Elegoo'}
-                value={form.marca}
-                onChange={handleChange}
-                id="input-nuevo-marca"
-              />
+              {isAccesorio ? (
+                !nuevaCat ? (
+                  <>
+                    <select
+                      name="marca"
+                      className={styles.select}
+                      value={form.marca}
+                      onChange={(e) => {
+                        if (e.target.value === '__nueva__') {
+                          setNuevaCat(true)
+                          setForm(p => ({ ...p, marca: '' }))
+                        } else {
+                          handleChange(e)
+                        }
+                      }}
+                      id="select-nuevo-categoria"
+                    >
+                      <option value="">Seleccioná categoría...</option>
+                      {categoriasExistentes.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                      <option value="__nueva__">+ Nueva categoría</option>
+                    </select>
+                  </>
+                ) : (
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input
+                      name="marca"
+                      className={styles.input}
+                      placeholder="Nombre de la nueva categoría"
+                      value={form.marca}
+                      onChange={handleChange}
+                      autoFocus
+                      id="input-nuevo-categoria-nueva"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setNuevaCat(false); setForm(p => ({ ...p, marca: '' })) }}
+                      style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.3rem' }}
+                      title="Cancelar nueva categoría"
+                    >×</button>
+                  </div>
+                )
+              ) : (
+                <input
+                  name="marca"
+                  className={styles.input}
+                  placeholder="Ej: Elegoo"
+                  value={form.marca}
+                  onChange={handleChange}
+                  id="input-nuevo-marca"
+                />
+              )}
             </div>
           </div>
 
@@ -356,7 +445,7 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
               <div className={styles.preview}>
                 {preview
                   ? <img src={preview} alt="preview" onError={() => setPreview('')} />
-                  : <span className={styles.previewPlaceholder}>🖼️</span>
+                  : <span className={styles.previewPlaceholder}><ImageOutlinedIcon sx={{ fontSize: '2.5rem', color: '#475569' }} /></span>
                 }
               </div>
 
@@ -368,7 +457,7 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
                   onClick={() => fileRef.current?.click()}
                   id="btn-upload-imagen"
                 >
-                  📁 Subir imagen
+                  <UploadFileOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.4 }} /> Subir imagen
                 </button>
                 <input
                   ref={fileRef}
@@ -378,7 +467,7 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
                   onChange={handleFile}
                 />
                 {imagenFile && (
-                  <span className={styles.fileName}>✓ {imagenFile.name}</span>
+                  <span className={styles.fileName}><CheckCircleOutlinedIcon sx={{ fontSize: '0.85rem', verticalAlign: 'middle', mr: 0.3, color: '#22c55e' }} /> {imagenFile.name}</span>
                 )}
 
                 <div className={styles.divider}>
@@ -402,7 +491,7 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
 
           {/* Error */}
           {error && (
-            <div className={styles.errorMsg}>⚠️ {error}</div>
+            <div className={styles.errorMsg}><WarningAmberOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} /> {error}</div>
           )}
 
           {/* Botones */}
@@ -422,10 +511,10 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
               id="btn-guardar-nuevo-producto"
             >
               {ok
-                ? '✅ ¡Producto creado!'
+                ? <><CheckCircleOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} /> ¡Producto creado!</>
                 : guardando
                   ? <><CircularProgress size={14} sx={{ color: '#f59e0b' }} /> Guardando...</>
-                  : '💾 Guardar Producto'
+                  : <><SaveOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} /> Guardar Producto</>
               }
             </button>
           </div>

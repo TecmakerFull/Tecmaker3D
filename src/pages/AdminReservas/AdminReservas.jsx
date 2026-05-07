@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react'
 import { CircularProgress } from '@mui/material'
 import useAuthStore from '../../stores/useAuthStore'
 import { supabase } from '../../lib/supabase'
+import AccessTimeOutlinedIcon  from '@mui/icons-material/AccessTimeOutlined'
+import GroupOutlinedIcon       from '@mui/icons-material/GroupOutlined'
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
+import PersonOutlinedIcon      from '@mui/icons-material/PersonOutlined'
+import WhatsAppIcon            from '@mui/icons-material/WhatsApp'
+import TimerOutlinedIcon       from '@mui/icons-material/TimerOutlined'
+import LockOutlinedIcon        from '@mui/icons-material/LockOutlined'
 import styles from './AdminReservas.module.css'
 
 // ============================================================
@@ -113,7 +120,7 @@ const AdminReservas = () => {
 
   if (!esAdmin) return (
     <div style={{ paddingTop: 120, textAlign: 'center', color: '#64748b', fontFamily: 'Poppins,sans-serif' }}>
-      🔒 Acceso solo para administradores
+      <LockOutlinedIcon sx={{ fontSize: '1.5rem', verticalAlign: 'middle', mr: 0.5 }} /> Acceso solo para administradores
     </div>
   )
 
@@ -134,13 +141,13 @@ const AdminReservas = () => {
           className={`${styles.tab} ${tabActivo === 'reservas' ? styles.tabActive : ''}`}
           onClick={() => setTabActivo('reservas')}
         >
-          ⏱ Reservas activas {reservas.length > 0 && <span className={styles.tabBadge}>{reservas.length}</span>}
+          <AccessTimeOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.4 }} /> Reservas activas {reservas.length > 0 && <span className={styles.tabBadge}>{reservas.length}</span>}
         </button>
         <button
           className={`${styles.tab} ${tabActivo === 'usuarios' ? styles.tabActive : ''}`}
           onClick={() => setTabActivo('usuarios')}
         >
-          👥 Usuarios registrados
+          <GroupOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.4 }} /> Usuarios registrados
         </button>
       </div>
 
@@ -151,7 +158,7 @@ const AdminReservas = () => {
             <div className={styles.loading}><CircularProgress sx={{ color: '#f59e0b' }} /></div>
           ) : reservas.length === 0 ? (
             <div className={styles.emptyState}>
-              <span>✅</span>
+              <CheckCircleOutlinedIcon sx={{ fontSize: '2.5rem', color: '#22c55e' }} />
               <p>No hay reservas activas en este momento.</p>
             </div>
           ) : (
@@ -180,13 +187,13 @@ const AdminReservas = () => {
 
                     {/* Timer */}
                     <div className={styles.timerRow}>
-                      <span className={styles.timer}>⏳ {countdowns[r.id]}</span>
+                      <span className={styles.timer}><TimerOutlinedIcon sx={{ fontSize: '0.85rem', verticalAlign: 'middle', mr: 0.2 }} /> {countdowns[r.id]}</span>
                       <span className={styles.fechaReserva}>{formatFecha(r.created_at)}</span>
                     </div>
 
                     {/* Usuario */}
                     <div className={styles.usuarioRow}>
-                      <span className={styles.usuarioLabel}>👤 Usuario</span>
+                      <span className={styles.usuarioLabel}><PersonOutlinedIcon sx={{ fontSize: '0.85rem', verticalAlign: 'middle', mr: 0.2 }} /> Usuario</span>
                       <span className={styles.usuarioNombre}>{usuario?.nombre || 'Sin nombre'}</span>
                       <span className={styles.usuarioEmail}>{usuario?.email}</span>
                       {usuario?.telefono && (
@@ -196,7 +203,7 @@ const AdminReservas = () => {
                           rel="noreferrer"
                           className={styles.waLink}
                         >
-                          📱 WhatsApp
+                          <WhatsAppIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} /> WhatsApp
                         </a>
                       )}
                     </div>
@@ -211,7 +218,7 @@ const AdminReservas = () => {
                       >
                         {estado === 'confirmando'
                           ? <CircularProgress size={14} sx={{ color: '#000' }} />
-                          : '✅ Confirmar compra'
+                           : <><CheckCircleOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} /> Confirmar compra</>
                         }
                       </button>
                       <button

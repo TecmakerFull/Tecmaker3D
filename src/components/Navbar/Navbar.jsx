@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
-import { NavLink, Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { NavLink, Link, useLocation } from 'react-router-dom'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
-import MenuIcon from '@mui/icons-material/Menu'
-import CloseIcon from '@mui/icons-material/Close'
+import MenuIcon         from '@mui/icons-material/Menu'
+import CloseIcon        from '@mui/icons-material/Close'
 import useCartStore from '../../stores/useCartStore'
 import useAuthStore from '../../stores/useAuthStore'
 import UserMenu, { LoginButton } from '../Auth/UserMenu'
@@ -12,168 +12,194 @@ import styles from './Navbar.module.css'
 // Navbar — Navegación principal con React Router
 // ====================================================
 
+const TIENDA_ITEMS = [
+  { to: '/filamentos', label: 'Filamentos'     },
+  { to: '/accesorios', label: 'Accesorios'     },
+  { to: '/tienda',     label: 'Impresiones 3D' },
+  { to: '/stl',        label: 'Archivos STL'   },
+]
+
+const ADMIN_ITEMS = [
+  { to: '/admin/stock',    label: 'Stock'                },
+  { to: '/admin/reservas', label: 'Reservas'             },
+  { to: '/admin/usuarios', label: 'Usuarios registrados' },
+  { to: '/admin/ventas',   label: 'Ventas'               },
+]
+
 const Navbar = () => {
-  const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled,   setScrolled]   = useState(false)
+  const [menuOpen,   setMenuOpen]   = useState(false)
+  const [tiendaOpen, setTiendaOpen] = useState(false)
+  const [adminOpen,  setAdminOpen]  = useState(false)
+  const dropdownRef = useRef(null)
+  const adminRef    = useRef(null)
+  const location    = useLocation()
 
   const items    = useCartStore((state) => state.items)
   const openCart = useCartStore((state) => state.openCart)
   const session  = useAuthStore((s) => s.session)
   const esAdmin  = useAuthStore((s) => s.esAdmin)
 
-  // Cantidad total del carrito
-  const totalItems = items.reduce((acc, item) => acc + item.cantidad, 0)
+  const totalItems   = items.reduce((acc, item) => acc + item.cantidad, 0)
+  const tiendaActiva = TIENDA_ITEMS.some(i => location.pathname.startsWith(i.to))
+  const adminActiva  = ADMIN_ITEMS.some(i => location.pathname.startsWith(i.to))
 
-  // Efecto scroll para cambiar estilo del navbar
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Cierra menú mobile al navegar
-  const handleNavClick = () => setMenuOpen(false)
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setTiendaOpen(false)
+      if (adminRef.current    && !adminRef.current.contains(e.target))    setAdminOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const handleNavClick = () => { setMenuOpen(false); setTiendaOpen(false); setAdminOpen(false) }
 
   return (
     <nav className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''}`}>
       <div className={styles.container}>
-        {/* Logo / Brand */}
+
+        {/* Logo */}
         <Link to="/" className={styles.brand} onClick={handleNavClick}>
-          <img
-            src="/logo.png"
-            alt="TecMaker 3D Logo"
-            className={styles.brandLogo}
-          />
+          <img src="/logo.png" alt="TecMaker 3D Logo" className={styles.brandLogo} />
           TecMaker 3D
         </Link>
 
-        {/* Links de navegación — usan <NavLink> para clase activa automática */}
+        {/* Links principales */}
         <ul className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ''}`}>
+
           <li>
-            <NavLink
-              to="/"
-              end
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-              }
+            <NavLink to="/" end
+              className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
               onClick={handleNavClick}
             >
               Inicio
             </NavLink>
           </li>
-          <li>
-            <NavLink
-              to="/filamentos"
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-              }
-              onClick={handleNavClick}
-            >
-              Filamentos
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/accesorios"
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-              }
-              onClick={handleNavClick}
-            >
-              Accesorios
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/tienda"
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-              }
-              onClick={handleNavClick}
+
+          {/* Tienda dropdown */}
+          <li className={styles.dropdownWrap} ref={dropdownRef}>
+            <button
+              className={`${styles.navLink} ${styles.dropdownBtn} ${tiendaActiva ? styles.navLinkActive : ''}`}
+              onClick={() => setTiendaOpen(o => !o)}
+              aria-expanded={tiendaOpen}
             >
               Tienda
-            </NavLink>
+              <span className={`${styles.dropdownArrow} ${tiendaOpen ? styles.dropdownArrowOpen : ''}`}>▾</span>
+            </button>
+
+            {tiendaOpen && (
+              <ul className={styles.dropdown}>
+                {TIENDA_ITEMS.map(({ to, label }) => (
+                  <li key={to}>
+                    <NavLink
+                      to={to}
+                      className={({ isActive }) =>
+                        `${styles.dropdownLink} ${isActive ? styles.dropdownLinkActive : ''}`
+                      }
+                      onClick={handleNavClick}
+                    >
+                      {label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
+
           <li>
-            <NavLink
-              to="/stl"
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-              }
+            <NavLink to="/calculadora"
+              className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
               onClick={handleNavClick}
             >
-              STL
+              Calculadora 3D
             </NavLink>
           </li>
+
           <li>
-            <NavLink
-              to="/contacto"
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-              }
+            <NavLink to="/contacto"
+              className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
               onClick={handleNavClick}
             >
               Contacto
             </NavLink>
           </li>
-          {/* Tabs solo para admin */}
+
+          {/* Admin dropdown */}
           {esAdmin && (
-            <>
-              <li>
-                <NavLink
-                  to="/admin/stock"
-                  className={({ isActive }) =>
-                    `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-                  }
-                  onClick={handleNavClick}
-                >
-                  📦 Stock
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/admin/reservas"
-                  className={({ isActive }) =>
-                    `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-                  }
-                  onClick={handleNavClick}
-                >
-                  📋 Reservas
-                </NavLink>
-              </li>
-            </>
+            <li className={styles.dropdownWrap} ref={adminRef}>
+              <button
+                className={`${styles.navLink} ${styles.dropdownBtn} ${styles.adminBtn} ${adminActiva ? styles.navLinkActive : ''}`}
+                onClick={() => setAdminOpen(o => !o)}
+                aria-expanded={adminOpen}
+              >
+                Admin
+                <span className={`${styles.dropdownArrow} ${adminOpen ? styles.dropdownArrowOpen : ''}`}>▾</span>
+              </button>
+              {adminOpen && (
+                <ul className={`${styles.dropdown} ${styles.dropdownAdmin}`}>
+                  {ADMIN_ITEMS.map(({ to, label }) => (
+                    <li key={to}>
+                      <NavLink
+                        to={to}
+                        className={({ isActive }) =>
+                          `${styles.dropdownLink} ${isActive ? styles.dropdownLinkActive : ''}`
+                        }
+                        onClick={handleNavClick}
+                      >
+                        {label}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
           )}
+
+          {/* Mobile: subitems de Tienda */}
+          <li className={styles.mobileOnly}>
+            <span className={styles.mobileSection}>— Tienda —</span>
+            {TIENDA_ITEMS.map(({ to, label }) => (
+              <NavLink key={to} to={to}
+                className={({ isActive }) =>
+                  `${styles.navLink} ${styles.mobileSubLink} ${isActive ? styles.navLinkActive : ''}`
+                }
+                onClick={handleNavClick}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </li>
+
         </ul>
 
-        {/* Acciones: Carrito */}
+        {/* Acciones */}
         <div className={styles.navActions}>
-          <button
-            className={styles.cartBtn}
-            onClick={openCart}
-            aria-label="Abrir carrito de compras"
-            id="btn-abrir-carrito"
+          <button className={styles.cartBtn} onClick={openCart}
+            aria-label="Abrir carrito de compras" id="btn-abrir-carrito"
           >
             <ShoppingCartIcon fontSize="small" />
             <span className={styles.cartBtnText}>Carrito</span>
             {totalItems > 0 && (
-              <span className={styles.cartBadge} key={totalItems}>
-                {totalItems}
-              </span>
+              <span className={styles.cartBadge} key={totalItems}>{totalItems}</span>
             )}
           </button>
 
-          {/* Login / Avatar */}
           {session ? <UserMenu /> : <LoginButton />}
 
-          {/* Botón hamburguesa mobile */}
-          <button
-            className={styles.mobileMenuBtn}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Abrir menú"
+          <button className={styles.mobileMenuBtn}
+            onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menú"
           >
             {menuOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
         </div>
+
       </div>
     </nav>
   )

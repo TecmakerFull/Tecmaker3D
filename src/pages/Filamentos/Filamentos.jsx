@@ -1,144 +1,234 @@
 import { useMemo, useState } from 'react'
-import { Typography, Button, CircularProgress } from '@mui/material'
+import { Typography, CircularProgress } from '@mui/material'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import FilamentCard from '../../components/FilamentCard/FilamentCard'
 import useStockStore from '../../stores/useStockStore'
+import SupportIcon          from '@mui/icons-material/Support'
+import ViewListOutlinedIcon from '@mui/icons-material/ViewListOutlined'
+import SearchIcon           from '@mui/icons-material/Search'
+import TuneOutlinedIcon     from '@mui/icons-material/TuneOutlined'
+import CloseIcon            from '@mui/icons-material/Close'
 import styles from './Filamentos.module.css'
 
 const Filamentos = () => {
   const catalogoFilamentos = useStockStore((s) => s.catalogoFilamentos)
   const cargandoCatalogo   = useStockStore((s) => s.cargandoCatalogo)
 
-  const [marcaActiva, setMarcaActiva] = useState('Todas')
-  const [tipoActivo,  setTipoActivo]  = useState('Todos')
-  const [busqueda,    setBusqueda]    = useState('')
-  const location = useLocation()
+  const [marcaActiva,  setMarcaActiva]  = useState('Todas')
+  const [tipoActivo,   setTipoActivo]   = useState('Todos')
+  const [colorActivo,  setColorActivo]  = useState('Todos')
+  const [busqueda,     setBusqueda]     = useState('')
+  const [sidebarOpen,  setSidebarOpen]  = useState(false)
+  const location   = useLocation()
   const isSubRoute = location.pathname !== '/filamentos'
 
-  // Marcas y materiales dinámicos desde Supabase
-  const marcas    = useMemo(() => [...new Set(catalogoFilamentos.map(f => f.marca))],    [catalogoFilamentos])
+  const marcas     = useMemo(() => [...new Set(catalogoFilamentos.map(f => f.marca))],    [catalogoFilamentos])
   const materiales = useMemo(() => [...new Set(catalogoFilamentos.map(f => f.material))], [catalogoFilamentos])
+  const colores    = useMemo(() =>
+    [...new Set(catalogoFilamentos.map(f => f.color).filter(Boolean))].sort(),
+    [catalogoFilamentos]
+  )
 
-  // Filtrado
   const filamentosFiltrados = useMemo(() =>
     catalogoFilamentos.filter((f) => {
-      const matchMarca    = marcaActiva === 'Todas'  || f.marca     === marcaActiva
-      const matchMaterial = tipoActivo  === 'Todos'  || f.material  === tipoActivo
+      const matchMarca    = marcaActiva  === 'Todas' || f.marca    === marcaActiva
+      const matchMaterial = tipoActivo   === 'Todos' || f.material === tipoActivo
+      const matchColor    = colorActivo  === 'Todos' || (f.color || '').toLowerCase() === colorActivo.toLowerCase()
       const q = busqueda.toLowerCase()
       const matchBusqueda = !q ||
         f.nombre.toLowerCase().includes(q) ||
         f.marca.toLowerCase().includes(q)  ||
         (f.color || '').toLowerCase().includes(q)
-      return matchMarca && matchMaterial && matchBusqueda
+      return matchMarca && matchMaterial && matchColor && matchBusqueda
     }),
-    [catalogoFilamentos, marcaActiva, tipoActivo, busqueda]
+    [catalogoFilamentos, marcaActiva, tipoActivo, colorActivo, busqueda]
   )
+
+  const hayFiltrosActivos = marcaActiva !== 'Todas' || tipoActivo !== 'Todos' || colorActivo !== 'Todos' || !!busqueda
+
+  const limpiarFiltros = () => {
+    setMarcaActiva('Todas')
+    setTipoActivo('Todos')
+    setColorActivo('Todos')
+    setBusqueda('')
+  }
 
   return (
     <div className={styles.page}>
-      {/* Hero */}
+
+      {/* ── Hero ── */}
       <div className={styles.hero}>
         <div className={styles.heroContent}>
-          <span className={styles.pageLabel}>🧵 CATÁLOGO</span>
-          <Typography component="h1" className={styles.pageTitle}>
-            Filamentos Premium
-          </Typography>
+          <span className={styles.pageLabel}>
+            <SupportIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.5 }} /> CATÁLOGO
+          </span>
+          <Typography component="h1" className={styles.pageTitle}>Filamentos Premium</Typography>
           <Typography className={styles.pageSubtitle}>
-            {cargandoCatalogo ? 'Cargando...' : `${catalogoFilamentos.length} productos · Marcas Elegoo, Filar, GST, Hellbot, Printalot`}
+            {cargandoCatalogo
+              ? 'Cargando...'
+              : `${catalogoFilamentos.length} productos · Marcas Elegoo, Filar, GST, Hellbot, Printalot`}
           </Typography>
         </div>
       </div>
 
-      {/* Sub-navegación */}
+      {/* ── Sub-nav ── */}
       <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0f0f0f' }}>
         <div className={styles.subNav}>
-          <NavLink to="/filamentos" end className={({ isActive }) => `${styles.subNavLink} ${isActive ? styles.subNavLinkActive : ''}`}>
-            📦 Catálogo
+          <NavLink
+            to="/filamentos" end
+            className={({ isActive }) => `${styles.subNavLink} ${isActive ? styles.subNavLinkActive : ''}`}
+          >
+            <ViewListOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.4 }} /> Catálogo
           </NavLink>
-          <NavLink to="/filamentos/configuraciones" className={({ isActive }) => `${styles.subNavLink} ${isActive ? styles.subNavLinkActive : ''}`}>
+          <NavLink
+            to="/filamentos/configuraciones"
+            className={({ isActive }) => `${styles.subNavLink} ${isActive ? styles.subNavLinkActive : ''}`}
+          >
             🔬 Especificaciones Técnicas (API)
           </NavLink>
         </div>
       </div>
 
       {isSubRoute ? <Outlet /> : (
-        <>
-          {/* Toolbar de filtros */}
-          <div className={styles.toolbar}>
-            <div className={styles.toolbarInner}>
+        <div className={styles.shopLayout}>
 
-              {/* ── DESKTOP: pills ── */}
-              <div className={styles.filterGroup}>
-                <span className={styles.filterLabel}>Marca:</span>
-                <Button className={`${styles.filterBtn} ${marcaActiva === 'Todas' ? styles.filterBtnActive : ''}`} onClick={() => setMarcaActiva('Todas')} id="filtro-todas-marcas">Todas</Button>
+          {/* Overlay mobile */}
+          {sidebarOpen && <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />}
+
+          {/* ════ SIDEBAR ════ */}
+          <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
+
+            <div className={styles.sidebarHeader}>
+              <span className={styles.sidebarTitle}>Filtrar por</span>
+              {hayFiltrosActivos && (
+                <button className={styles.clearBtn} onClick={limpiarFiltros}>Limpiar</button>
+              )}
+              <button className={styles.closeSidebar} onClick={() => setSidebarOpen(false)} aria-label="Cerrar filtros">
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
+
+            {/* Buscador */}
+            <div className={styles.sidebarSearch}>
+              <SearchIcon className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Buscar filamento..."
+                className={styles.searchInput}
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                id="input-buscar-filamento"
+              />
+            </div>
+
+            {/* Filtro: Marca */}
+            <div className={styles.filterSection}>
+              <p className={styles.filterTitle}>Marca</p>
+              <div className={styles.filterPills}>
+                <button
+                  className={`${styles.pill} ${marcaActiva === 'Todas' ? styles.pillActive : ''}`}
+                  onClick={() => setMarcaActiva('Todas')}
+                  id="filtro-todas-marcas"
+                >Todas</button>
                 {marcas.map((marca) => (
-                  <Button key={marca} className={`${styles.filterBtn} ${marcaActiva === marca ? styles.filterBtnActive : ''}`} onClick={() => setMarcaActiva(marca)} id={`filtro-marca-${marca.toLowerCase()}`}>{marca}</Button>
+                  <button
+                    key={marca}
+                    className={`${styles.pill} ${marcaActiva === marca ? styles.pillActive : ''}`}
+                    onClick={() => setMarcaActiva(marca)}
+                    id={`filtro-marca-${marca.toLowerCase()}`}
+                  >{marca}</button>
                 ))}
-              </div>
-              <div className={styles.filterGroup}>
-                <span className={styles.filterLabel}>Material:</span>
-                <Button className={`${styles.filterBtn} ${tipoActivo === 'Todos' ? styles.filterBtnActive : ''}`} onClick={() => setTipoActivo('Todos')} id="filtro-todos-tipos">Todos</Button>
-                {materiales.map((mat) => (
-                  <Button key={mat} className={`${styles.filterBtn} ${tipoActivo === mat ? styles.filterBtnActive : ''}`} onClick={() => setTipoActivo(mat)} id={`filtro-tipo-${mat.toLowerCase().replace(/\s/g, '-')}`}>{mat}</Button>
-                ))}
-              </div>
-
-              {/* ── MOBILE: selects desplegables ── */}
-              <div className={styles.mobileFilters}>
-                <select
-                  className={styles.mobileSelect}
-                  value={marcaActiva}
-                  onChange={(e) => setMarcaActiva(e.target.value)}
-                  id="select-marca-mobile"
-                >
-                  <option value="Todas">🏷️ Marca: Todas</option>
-                  {marcas.map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
-                <select
-                  className={styles.mobileSelect}
-                  value={tipoActivo}
-                  onChange={(e) => setTipoActivo(e.target.value)}
-                  id="select-material-mobile"
-                >
-                  <option value="Todos">🧪 Material: Todos</option>
-                  {materiales.map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </div>
-
-              {/* Búsqueda (siempre visible) */}
-              <div className={styles.searchRow}>
-                <input type="text" placeholder="🔍 Buscar..." className={styles.searchInput} value={busqueda} onChange={(e) => setBusqueda(e.target.value)} id="input-buscar-filamento" />
               </div>
             </div>
-          </div>
 
-          {/* Grilla */}
-          <div className={styles.container}>
+            {/* Filtro: Material */}
+            <div className={styles.filterSection}>
+              <p className={styles.filterTitle}>Material</p>
+              <div className={styles.filterPills}>
+                <button
+                  className={`${styles.pill} ${tipoActivo === 'Todos' ? styles.pillActive : ''}`}
+                  onClick={() => setTipoActivo('Todos')}
+                  id="filtro-todos-tipos"
+                >Todos</button>
+                {materiales.map((mat) => (
+                  <button
+                    key={mat}
+                    className={`${styles.pill} ${tipoActivo === mat ? styles.pillActive : ''}`}
+                    onClick={() => setTipoActivo(mat)}
+                    id={`filtro-tipo-${mat.toLowerCase().replace(/\s/g, '-')}`}
+                  >{mat}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Filtro: Color */}
+            <div className={styles.filterSection}>
+              <p className={styles.filterTitle}>Color</p>
+              <div className={styles.filterPills}>
+                <button
+                  className={`${styles.pill} ${colorActivo === 'Todos' ? styles.pillActive : ''}`}
+                  onClick={() => setColorActivo('Todos')}
+                  id="filtro-todos-colores"
+                >Todos</button>
+                {colores.map((color) => (
+                  <button
+                    key={color}
+                    className={`${styles.pill} ${colorActivo === color ? styles.pillActive : ''}`}
+                    onClick={() => setColorActivo(color)}
+                    id={`filtro-color-${color.toLowerCase().replace(/\s/g, '-')}`}
+                  >{color}</button>
+                ))}
+              </div>
+            </div>
+
+          </aside>
+
+          {/* ════ ÁREA DE PRODUCTOS ════ */}
+          <main className={styles.productsArea}>
+
+            {/* Barra de resultados */}
+            <div className={styles.resultsBar}>
+              <p className={styles.resultsInfo}>
+                {cargandoCatalogo
+                  ? 'Cargando...'
+                  : `${filamentosFiltrados.length} de ${catalogoFilamentos.length} filamentos`}
+              </p>
+              <button
+                className={styles.filterToggle}
+                onClick={() => setSidebarOpen(true)}
+                id="btn-abrir-filtros"
+              >
+                <TuneOutlinedIcon sx={{ fontSize: '1rem', mr: 0.5, verticalAlign: 'middle' }} />
+                Filtros
+                {hayFiltrosActivos && <span className={styles.filterBadge} />}
+              </button>
+            </div>
+
             {cargandoCatalogo ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>
                 <CircularProgress sx={{ color: '#6366f1' }} />
               </div>
+            ) : filamentosFiltrados.length === 0 ? (
+              <div className={styles.emptyResult}>
+                <div className={styles.emptyResultIcon}>
+                  <SearchIcon sx={{ fontSize: '3rem', color: '#475569' }} />
+                </div>
+                <Typography>No se encontraron filamentos con esos filtros.</Typography>
+                <button className={styles.clearBtn} onClick={limpiarFiltros} style={{ marginTop: '1rem' }}>
+                  Limpiar filtros
+                </button>
+              </div>
             ) : (
-              <>
-                <p className={styles.resultsInfo}>
-                  Mostrando {filamentosFiltrados.length} de {catalogoFilamentos.length} filamentos
-                </p>
-                {filamentosFiltrados.length === 0 ? (
-                  <div className={styles.emptyResult}>
-                    <div className={styles.emptyResultIcon}>🔍</div>
-                    <Typography>No se encontraron filamentos con esos filtros.</Typography>
-                  </div>
-                ) : (
-                  <div className={styles.grid}>
-                    {filamentosFiltrados.map((filamento) => (
-                      <FilamentCard key={filamento.id} filamento={filamento} />
-                    ))}
-                  </div>
-                )}
-              </>
+              <div className={styles.grid}>
+                {filamentosFiltrados.map((filamento) => (
+                  <FilamentCard key={filamento.id} filamento={filamento} />
+                ))}
+              </div>
             )}
-          </div>
-        </>
+
+          </main>
+
+        </div>
       )}
     </div>
   )

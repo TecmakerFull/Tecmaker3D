@@ -3,51 +3,41 @@ import { Typography, Button, Chip, CircularProgress } from '@mui/material'
 import useFetch from '../../hooks/useFetch'
 import styles from './FilamentosConfig.module.css'
 
-// ============================================================
-// FilamentosConfig — Consigna 2 del TP3
-// ✅ Custom Hook useFetch | ✅ Axios | ✅ useEffect([])
-// ✅ Loading / Error (.catch) / Data | ✅ MUI Components
-// ============================================================
-
-const ALL_CIDS = '612,174,7501,9815,5372954,6623,8857,10413,644,7847,8252,6658,31239,9254,7794'
+const ALL_CIDS = '612,174,7501,9815,5372954,6623,8857,10413,644,7847'
 const API_PROPS = 'MolecularFormula,MolecularWeight,IUPACName,XLogP,ExactMass,TPSA,Complexity,HBondDonorCount,HBondAcceptorCount,HeavyAtomCount,RotatableBondCount,Charge'
 const API_URL = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${ALL_CIDS}/property/${API_PROPS}/JSON`
 
 const FEATURED_CIDS = [612, 174, 7501, 9815, 5372954, 6623]
 
+// tipo defilamento 
+
 const CID_CONTEXT = {
-  612:     { filamento: 'PLA',      emoji: '🌿', temp: '180–230°C', cama: '20–60°C',  color: '#166534', bg: '#dcfce7', desc: 'Ácido Poliláctico. El filamento más popular, biodegradable y fácil de imprimir.' },
-  174:     { filamento: 'PETG',     emoji: '💧', temp: '220–250°C', cama: '50–75°C',  color: '#1e40af', bg: '#dbeafe', desc: 'Resistente a impactos y humedad. Combina la facilidad del PLA con la durabilidad del ABS.' },
-  7501:    { filamento: 'ABS',      emoji: '⚙️', temp: '220–250°C', cama: '80–110°C', color: '#92400e', bg: '#fef3c7', desc: 'Alta resistencia térmica y mecánica. Requiere recinto cerrado.' },
-  9815:    { filamento: 'Nylon 6',  emoji: '🔩', temp: '240–280°C', cama: '70–90°C',  color: '#6b21a8', bg: '#f3e8ff', desc: 'Extrema resistencia al desgaste. Requiere secado previo del filamento.' },
-  5372954: { filamento: 'TPU',      emoji: '🤸', temp: '210–230°C', cama: '20–60°C',  color: '#9d174d', bg: '#fce7f3', desc: 'Flexible y elástico. Perfecto para fundas y piezas que absorben impactos.' },
-  6623:    { filamento: 'PC',       emoji: '🔷', temp: '250–310°C', cama: '90–120°C', color: '#0e7490', bg: '#cffafe', desc: 'Policarbonato. Altísima resistencia al impacto y transparencia óptica.' },
-  8857:    { filamento: 'PVA',      emoji: '💊', temp: '190–220°C', cama: '45–60°C',  color: '#065f46', bg: '#d1fae5', desc: 'Filamento de soporte soluble en agua. Ideal para impresoras duales.' },
-  10413:   { filamento: 'Nylon 12', emoji: '🔗', temp: '240–260°C', cama: '70–85°C',  color: '#4c1d95', bg: '#ede9fe', desc: 'Mayor flexibilidad que el Nylon 6. Menor absorción de humedad.' },
-  644:     { filamento: 'ASA',      emoji: '☀️', temp: '240–260°C', cama: '90–110°C', color: '#92400e', bg: '#fff7ed', desc: 'Como el ABS pero resistente a rayos UV. Ideal para piezas de exterior.' },
-  7847:    { filamento: 'HIPS',     emoji: '🧩', temp: '220–240°C', cama: '90–110°C', color: '#374151', bg: '#f3f4f6', desc: 'Soporte soluble en D-limoneno. Compatible con ABS para impresión dual.' },
-  // Materiales adicionales (solo buscador desplegable)
-  8252:    { filamento: 'PP',       emoji: '🧪', temp: '220–250°C', cama: '85–100°C', color: '#1d4ed8', bg: '#eff6ff', desc: 'Polipropileno. Alta resistencia química y a la fatiga. Difícil adhesión a la cama.' },
-  6658:    { filamento: 'PMMA',     emoji: '🧪', temp: '230–260°C', cama: '90–100°C', color: '#701a75', bg: '#fdf4ff', desc: 'Acrílico/Plexiglas. Transparencia cristalina y alta rigidez. Frágil ante impactos.' },
-  31239:   { filamento: 'PCL',      emoji: '🧪', temp: '60–80°C',  cama: '0–30°C',  color: '#065f46', bg: '#ecfdf5', desc: 'Policaprolactona. Temperatura de impresión ultrabaja. Biodegradable. Ideal para prótesis y educación.' },
-  9254:    { filamento: 'PVDF',     emoji: '🧪', temp: '220–260°C', cama: '90–110°C', color: '#0c4a6e', bg: '#f0f9ff', desc: 'Fluoropolímero flexible con excelente resistencia química. Usado en industria alimenticia y médica.' },
-  7794:    { filamento: 'PS',       emoji: '🧪', temp: '210–250°C', cama: '90–110°C', color: '#44403c', bg: '#fafaf9', desc: 'Poliestireno puro. Base del HIPS. Alta rigidez y fácil pintado. Poco resistente a impactos.' },
+  612: { filamento: 'PLA', emoji: '🌿', temp: '180–230°C', cama: '20–60°C', color: '#166534', bg: '#dcfce7', desc: 'Ácido Poliláctico. El filamento más popular, biodegradable y fácil de imprimir.' },
+  174: { filamento: 'PETG', emoji: '💧', temp: '220–250°C', cama: '50–75°C', color: '#1e40af', bg: '#dbeafe', desc: 'Resistente a impactos y humedad. Combina la facilidad del PLA con la durabilidad del ABS.' },
+  7501: { filamento: 'ABS', emoji: '⚙️', temp: '220–250°C', cama: '80–110°C', color: '#92400e', bg: '#fef3c7', desc: 'Alta resistencia térmica y mecánica. Requiere recinto cerrado.' },
+  9815: { filamento: 'Nylon 6', emoji: '🔩', temp: '240–280°C', cama: '70–90°C', color: '#6b21a8', bg: '#f3e8ff', desc: 'Extrema resistencia al desgaste. Requiere secado previo del filamento.' },
+  5372954: { filamento: 'TPU', emoji: '🤸', temp: '210–230°C', cama: '20–60°C', color: '#9d174d', bg: '#fce7f3', desc: 'Flexible y elástico. Perfecto para fundas y piezas que absorben impactos.' },
+  6623: { filamento: 'PC', emoji: '🔷', temp: '250–310°C', cama: '90–120°C', color: '#0e7490', bg: '#cffafe', desc: 'Policarbonato. Altísima resistencia al impacto y transparencia óptica.' },
+  8857: { filamento: 'PVA', emoji: '💊', temp: '190–220°C', cama: '45–60°C', color: '#065f46', bg: '#d1fae5', desc: 'Filamento de soporte soluble en agua. Ideal para impresoras duales.' },
+  10413: { filamento: 'Nylon 12', emoji: '🔗', temp: '240–260°C', cama: '70–85°C', color: '#4c1d95', bg: '#ede9fe', desc: 'Mayor flexibilidad que el Nylon 6. Menor absorción de humedad.' },
+  644: { filamento: 'ASA', emoji: '☀️', temp: '240–260°C', cama: '90–110°C', color: '#92400e', bg: '#fff7ed', desc: 'Como el ABS pero resistente a rayos UV. Ideal para piezas de exterior.' },
+  7847: { filamento: 'HIPS', emoji: '🧩', temp: '220–240°C', cama: '90–110°C', color: '#374151', bg: '#f3f4f6', desc: 'Soporte soluble en D-limoneno. Compatible con ABS para impresión dual.' },
 }
 
 // Definición de TODAS las propiedades con icono, unidad y descripción
 const PROP_DEFS = [
-  { key: 'MolecularFormula',   icon: '⚗️',  label: 'Fórmula Molecular',          unit: '',       desc: 'Composición atómica del compuesto base del filamento.' },
-  { key: 'MolecularWeight',    icon: '⚖️',  label: 'Peso Molecular',             unit: 'g/mol',  desc: 'Masa de una mol del compuesto. Influye en la viscosidad al fundirse.' },
-  { key: 'IUPACName',          icon: '🔬',  label: 'Nombre IUPAC',               unit: '',       desc: 'Nombre científico oficial según la nomenclatura internacional.' },
-  { key: 'ExactMass',          icon: '🎯',  label: 'Masa Exacta',                unit: 'Da',     desc: 'Masa monoisotópica precisa del compuesto. Usada en análisis espectrométrico.' },
-  { key: 'XLogP',              icon: '📊',  label: 'XLogP (Lipofilicidad)',      unit: '',       desc: 'Indica afinidad por agua (negativo) o grasas (positivo). Afecta absorción de humedad.' },
-  { key: 'TPSA',               icon: '🌊',  label: 'TPSA (Área Polar)',          unit: 'Å²',     desc: 'Área superficial polar. Valores altos indican mayor absorción de humedad (higroscopicidad).' },
-  { key: 'Complexity',         icon: '🔮',  label: 'Complejidad Molecular',      unit: '',       desc: 'Medida de la complejidad estructural. Más alta = molécula más difícil de sintetizar.' },
-  { key: 'HBondDonorCount',    icon: '💧',  label: 'Donantes de Puente H',       unit: '',       desc: 'Grupos capaces de ceder un hidrógeno. Más donantes = mayor absorción de agua del filamento.' },
-  { key: 'HBondAcceptorCount', icon: '🧲',  label: 'Aceptores de Puente H',      unit: '',       desc: 'Grupos capaces de aceptar un hidrógeno. Relacionado con la polaridad y adhesión entre capas.' },
-  { key: 'HeavyAtomCount',     icon: '⚛️',  label: 'Átomos Pesados',             unit: '',       desc: 'Cantidad de átomos no-hidrógeno. Indica el tamaño relativo de la molécula.' },
-  { key: 'RotatableBondCount', icon: '🔄',  label: 'Enlances Rotables',          unit: '',       desc: 'Flexibilidad molecular. Más enlaces rotables = mayor flexibilidad del polímero resultante.' },
-  { key: 'Charge',             icon: '⚡',  label: 'Carga Molecular',            unit: '',       desc: 'Carga eléctrica neta. 0 = neutro. Afecta la compatibilidad con aditivos conductores.' },
+  { key: 'MolecularFormula', icon: '⚗️', label: 'Fórmula Molecular', unit: '', desc: 'Composición atómica del compuesto base del filamento.' },
+  { key: 'MolecularWeight', icon: '⚖️', label: 'Peso Molecular', unit: 'g/mol', desc: 'Masa de una mol del compuesto. Influye en la viscosidad al fundirse.' },
+  { key: 'IUPACName', icon: '🔬', label: 'Nombre IUPAC', unit: '', desc: 'Nombre científico oficial según la nomenclatura internacional.' },
+  { key: 'ExactMass', icon: '🎯', label: 'Masa Exacta', unit: 'Da', desc: 'Masa monoisotópica precisa del compuesto. Usada en análisis espectrométrico.' },
+  { key: 'XLogP', icon: '📊', label: 'XLogP (Lipofilicidad)', unit: '', desc: 'Indica afinidad por agua (negativo) o grasas (positivo). Afecta absorción de humedad.' },
+  { key: 'TPSA', icon: '🌊', label: 'TPSA (Área Polar)', unit: 'Å²', desc: 'Área superficial polar. Valores altos indican mayor absorción de humedad (higroscopicidad).' },
+  { key: 'Complexity', icon: '🔮', label: 'Complejidad Molecular', unit: '', desc: 'Medida de la complejidad estructural. Más alta = molécula más difícil de sintetizar.' },
+  { key: 'HBondDonorCount', icon: '💧', label: 'Donantes de Puente H', unit: '', desc: 'Grupos capaces de ceder un hidrógeno. Más donantes = mayor absorción de agua del filamento.' },
+  { key: 'HBondAcceptorCount', icon: '🧲', label: 'Aceptores de Puente H', unit: '', desc: 'Grupos capaces de aceptar un hidrógeno. Relacionado con la polaridad y adhesión entre capas.' },
+  { key: 'HeavyAtomCount', icon: '⚛️', label: 'Átomos Pesados', unit: '', desc: 'Cantidad de átomos no-hidrógeno. Indica el tamaño relativo de la molécula.' },
+  { key: 'RotatableBondCount', icon: '🔄', label: 'Enlances Rotables', unit: '', desc: 'Flexibilidad molecular. Más enlaces rotables = mayor flexibilidad del polímero resultante.' },
+  { key: 'Charge', icon: '⚡', label: 'Carga Molecular', unit: '', desc: 'Carga eléctrica neta. 0 = neutro. Afecta la compatibilidad con aditivos conductores.' },
 ]
 
 // Formatea el valor de la propiedad (fórmula como código, etc.)

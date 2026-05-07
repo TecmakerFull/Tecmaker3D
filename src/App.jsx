@@ -17,7 +17,10 @@ import Tienda from './pages/Tienda/Tienda'
 import STL from './pages/STL/STL'
 import Contacto from './pages/Contacto/Contacto'
 import Perfil from './pages/Perfil/Perfil'
-import AdminReservas from './pages/AdminReservas/AdminReservas'
+import AdminReservas  from './pages/AdminReservas/AdminReservas'
+import AdminUsuarios  from './pages/AdminUsuarios/AdminUsuarios'
+import AdminVentas    from './pages/AdminVentas/AdminVentas'
+import Calculadora    from './pages/Calculadora/Calculadora'
 
 // ========================================
 // Configuración de rutas con React Router
@@ -56,12 +59,13 @@ function App() {
         <Route path="/tienda" element={<Tienda />} />
         <Route path="/stl" element={<STL />} />
         <Route path="/contacto" element={<Contacto />} />
+        <Route path="/calculadora" element={<Calculadora />} />
 
-        {/* Panel de stock administrador */}
-        <Route path="/admin/stock" element={<StockManager />} />
-
-        {/* Panel de reservas administrador */}
+        {/* Panel admin */}
+        <Route path="/admin/stock"    element={<StockManager />} />
         <Route path="/admin/reservas" element={<AdminReservas />} />
+        <Route path="/admin/usuarios" element={<AdminUsuarios />} />
+        <Route path="/admin/ventas"   element={<AdminVentas />} />
 
         {/* Perfil de usuario */}
         <Route path="/perfil" element={<Perfil />} />

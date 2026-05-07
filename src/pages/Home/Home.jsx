@@ -1,5 +1,10 @@
 import { Typography, Button } from '@mui/material'
 import { Link } from 'react-router-dom'
+import CalculateOutlinedIcon    from '@mui/icons-material/CalculateOutlined'
+import SupportIcon              from '@mui/icons-material/Support'
+import ConstructionOutlinedIcon from '@mui/icons-material/ConstructionOutlined'
+import ThreeDRotationIcon       from '@mui/icons-material/ThreeDRotation'
+import ViewInArOutlinedIcon     from '@mui/icons-material/ViewInArOutlined'
 import styles from './Home.module.css'
 
 // ========================
@@ -28,8 +33,8 @@ const Home = () => {
             <Link to="/filamentos" className={styles.ctaPrimary}>
               Ver Filamentos
             </Link>
-            <Link to="/tienda" className={styles.ctaSecondary}>
-              Ver Tienda →
+            <Link to="/calculadora" className={styles.ctaSecondary}>
+              🧮 Calculadora 3D →
             </Link>
           </div>
         </div>
@@ -66,23 +71,39 @@ const Home = () => {
           </Typography>
         </div>
         <div className={styles.categoriesGrid}>
-          <Link to="/filamentos" className={styles.categoryCard}>
-            <span className={styles.categoryIcon}>🧵</span>
+          <Link
+            to="/filamentos"
+            className={styles.categoryCard}
+            style={{ '--card-color': '139, 92, 246', '--card-hover-border': 'rgba(139,92,246,0.5)' }}
+          >
+            <span className={styles.categoryIcon}><SupportIcon sx={{ fontSize: '3.2rem', color: 'rgba(139,92,246,0.9)' }} /></span>
             <span className={styles.categoryName}>Filamentos</span>
             <span className={styles.categoryDesc}>PLA, PETG, Silk y más. 24 opciones de marcas premium.</span>
           </Link>
-          <Link to="/accesorios" className={styles.categoryCard}>
-            <span className={styles.categoryIcon}>⚙️</span>
+          <Link
+            to="/accesorios"
+            className={styles.categoryCard}
+            style={{ '--card-color': '245, 158, 11', '--card-hover-border': 'rgba(245,158,11,0.5)' }}
+          >
+            <span className={styles.categoryIcon}><ConstructionOutlinedIcon sx={{ fontSize: '3.2rem', color: 'rgba(245,158,11,0.9)' }} /></span>
             <span className={styles.categoryName}>Accesorios</span>
             <span className={styles.categoryDesc}>Nozzles, extrusores, tubos Teflon y más repuestos.</span>
           </Link>
-          <Link to="/tienda" className={styles.categoryCard}>
-            <span className={styles.categoryIcon}>🛍️</span>
-            <span className={styles.categoryName}>Tienda</span>
+          <Link
+            to="/tienda"
+            className={styles.categoryCard}
+            style={{ '--card-color': '20, 184, 166', '--card-hover-border': 'rgba(20,184,166,0.5)' }}
+          >
+            <span className={styles.categoryIcon}><ThreeDRotationIcon sx={{ fontSize: '3.2rem', color: 'rgba(20,184,166,0.9)' }} /></span>
+            <span className={styles.categoryName}>Impresiones 3D</span>
             <span className={styles.categoryDesc}>Figuras y productos impresos en 3D listos para llevar.</span>
           </Link>
-          <Link to="/stl" className={styles.categoryCard}>
-            <span className={styles.categoryIcon}>📐</span>
+          <Link
+            to="/stl"
+            className={styles.categoryCard}
+            style={{ '--card-color': '59, 130, 246', '--card-hover-border': 'rgba(59,130,246,0.5)' }}
+          >
+            <span className={styles.categoryIcon}><ViewInArOutlinedIcon sx={{ fontSize: '3.2rem', color: 'rgba(59,130,246,0.9)' }} /></span>
             <span className={styles.categoryName}>Archivos STL</span>
             <span className={styles.categoryDesc}>Modelos digitales para imprimir en tu propia impresora.</span>
           </Link>

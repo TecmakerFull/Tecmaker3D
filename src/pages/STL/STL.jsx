@@ -1,12 +1,17 @@
 import { Typography, CircularProgress } from '@mui/material'
 import useStockStore from '../../stores/useStockStore'
+import ViewInArOutlinedIcon   from '@mui/icons-material/ViewInArOutlined'
+import BuildOutlinedIcon      from '@mui/icons-material/BuildOutlined'
+import StarBorderOutlinedIcon from '@mui/icons-material/StarBorderOutlined'
+import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined'
+import LanguageOutlinedIcon   from '@mui/icons-material/LanguageOutlined'
 import styles from './STL.module.css'
 
 const stlLinks = [
-  { nombre: 'Thingiverse',    url: 'https://www.thingiverse.com/',                       desc: 'La biblioteca de modelos 3D más grande del mundo. Gratis.',              icon: '🌐' },
-  { nombre: 'Printables',     url: 'https://www.printables.com/',                        desc: 'Plataforma de Prusa con miles de modelos de alta calidad.',              icon: '🔧' },
-  { nombre: 'Cults3D',        url: 'https://cults3d.com/es/usuarios/Tecmaker3D',         desc: 'Diseños premium y exclusivos de TecMaker 3D, gratuitos y de pago.',      icon: '⭐' },
-  { nombre: 'MyMiniFactory',  url: 'https://www.myminifactory.com/',                     desc: 'Modelos garantizados para imprimir sin problemas.',                      icon: '🏆' },
+  { nombre: 'Thingiverse',   url: 'https://www.thingiverse.com/',                       desc: 'La biblioteca de modelos 3D más grande del mundo. Gratis.',         Icon: LanguageOutlinedIcon   },
+  { nombre: 'Printables',   url: 'https://www.printables.com/',                        desc: 'Plataforma de Prusa con miles de modelos de alta calidad.',         Icon: BuildOutlinedIcon      },
+  { nombre: 'Cults3D',      url: 'https://cults3d.com/es/usuarios/Tecmaker3D',         desc: 'Diseños premium y exclusivos de TecMaker 3D, gratuitos y de pago.', Icon: StarBorderOutlinedIcon  },
+  { nombre: 'MyMiniFactory',url: 'https://www.myminifactory.com/',                     desc: 'Modelos garantizados para imprimir sin problemas.',                Icon: EmojiEventsOutlinedIcon },
 ]
 
 const STL = () => {
@@ -16,7 +21,7 @@ const STL = () => {
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
-        <span className={styles.label}>📐 ARCHIVOS STL</span>
+        <span className={styles.label}><ViewInArOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.5 }} /> ARCHIVOS STL</span>
         <Typography component="h1" className={styles.title}>Modelos para Imprimir</Typography>
         <Typography className={styles.subtitle}>
           Encontrá el diseño perfecto en estas plataformas y nosotros lo imprimimos para vos
@@ -29,7 +34,7 @@ const STL = () => {
         {(cargandoCatalogo || catalogoSTL.length > 0) && (
           <div className={styles.seccion}>
             <Typography className={styles.seccionTitulo}>
-              ⭐ Diseños Exclusivos TecMaker 3D
+              <StarBorderOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.5 }} /> Diseños Exclusivos TecMaker 3D
             </Typography>
             <Typography className={styles.seccionSub}>
               Modelos diseñados por nosotros, disponibles en Cults3D
@@ -69,12 +74,12 @@ const STL = () => {
 
         {/* ── Plataformas externas ── */}
         <div className={styles.seccion}>
-          <Typography className={styles.seccionTitulo}>🌐 Plataformas de Modelos STL</Typography>
+          <Typography className={styles.seccionTitulo}><LanguageOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.5 }} /> Plataformas de Modelos STL</Typography>
           <Typography className={styles.seccionSub}>Descargá modelos y nosotros los imprimimos</Typography>
           <div className={styles.grid}>
             {stlLinks.map((link) => (
               <a key={link.nombre} href={link.url} target="_blank" rel="noopener noreferrer" className={styles.card}>
-                <span className={styles.cardIcon}>{link.icon}</span>
+                <span className={styles.cardIcon}><link.Icon fontSize="medium" /></span>
                 <Typography className={styles.cardName}>{link.nombre}</Typography>
                 <Typography className={styles.cardDesc}>{link.desc}</Typography>
                 <span className={styles.cardArrow}>Visitar →</span>
