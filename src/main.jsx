@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
+import { Analytics } from '@vercel/analytics/react'
 import App from './App.jsx'
 import './index.css'
 
@@ -49,6 +50,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <App />
+        <Analytics />
       </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>,

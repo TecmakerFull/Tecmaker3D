@@ -21,6 +21,7 @@ import AdminReservas  from './pages/AdminReservas/AdminReservas'
 import AdminUsuarios  from './pages/AdminUsuarios/AdminUsuarios'
 import AdminVentas    from './pages/AdminVentas/AdminVentas'
 import Calculadora    from './pages/Calculadora/Calculadora'
+import AsesorIA       from './components/AsesorIA/AsesorIA'
 
 // ========================================
 // Configuración de rutas con React Router
@@ -97,6 +98,9 @@ function App() {
 
       {/* Footer */}
       <Footer />
+
+      {/* Asesor IA — flotante en toda la app */}
+      <AsesorIA />
     </>
   )
 }
