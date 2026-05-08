@@ -10,6 +10,7 @@ import CheckCircleOutlinedIcon  from '@mui/icons-material/CheckCircleOutlined'
 import StorefrontOutlinedIcon   from '@mui/icons-material/StorefrontOutlined'
 import PersonOutlinedIcon       from '@mui/icons-material/PersonOutlined'
 import DeleteOutlineIcon        from '@mui/icons-material/DeleteOutline'
+import EditOutlinedIcon         from '@mui/icons-material/EditOutlined'
 import styles from './AdminVentas.module.css'
 
 const fmt = (n) =>
@@ -67,6 +68,9 @@ const AdminVentas = () => {
   const [form,      setForm]      = useState(FORM_VACIO)
   const [guardando, setGuardando] = useState(false)
   const [okMsg,     setOkMsg]     = useState(false)
+  const [editando,  setEditando]  = useState(null)   // venta manual siendo editada
+  const [editForm,  setEditForm]  = useState({})
+  const [guardandoEdit, setGuardandoEdit] = useState(false)
 
   useEffect(() => {
     if (!session || !esAdmin) return
@@ -192,6 +196,56 @@ const AdminVentas = () => {
   }
 
   // ── Soft-delete ─────────────────────────────────────────────
+  // ── Abrir modal de edición ───────────────────────
+  const handleAbrirEditar = (venta) => {
+    // Convertir fecha ISO a formato datetime-local
+    const fechaLocal = venta.fecha
+      ? (() => { const d = new Date(venta.fecha); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16) })()
+      : fechaLocalDefault()
+    setEditForm({
+      producto:  venta.producto,
+      marca:     venta.marca === '—' ? '' : venta.marca,
+      precio:    String(venta.total / (venta.cantidad || 1)),
+      cantidad:  String(venta.cantidad),
+      comprador: venta.comprador === '—' ? '' : venta.comprador,
+      nota:      venta.nota || '',
+      fecha:     fechaLocal,
+    })
+    setEditando(venta)
+  }
+
+  // ── Guardar edición ───────────────────────────
+  const handleActualizar = async () => {
+    if (!editForm.producto?.trim() || !editForm.precio) return
+    setGuardandoEdit(true)
+    try {
+      const { error } = await supabase.from('ventas_manuales').update({
+        producto:  editForm.producto.trim(),
+        marca:     editForm.marca.trim()    || null,
+        precio:    Number(editForm.precio),
+        cantidad:  Number(editForm.cantidad) || 1,
+        comprador: editForm.comprador.trim() || null,
+        nota:      editForm.nota.trim()     || null,
+        fecha:     editForm.fecha ? new Date(editForm.fecha).toISOString() : new Date().toISOString(),
+      }).eq('id', editando.id)
+
+      if (!error) {
+        setEditando(null)
+        setOkMsg(true)
+        setTimeout(() => setOkMsg(false), 3000)
+        cargar()
+      } else {
+        alert('Error al actualizar: ' + error.message)
+      }
+    } catch (e) {
+      alert('Error inesperado: ' + e.message)
+    } finally {
+      setGuardandoEdit(false)
+    }
+  }
+
+  const setEF = (k, v) => setEditForm(p => ({ ...p, [k]: v }))
+
   const handleEliminar = async (venta) => {
     if (!window.confirm(`¿Desactivar la venta de "${venta.producto}"? Quedará en la base de datos pero no contará en los totales.`)) return
     if (venta.tipo === 'online') {
@@ -325,138 +379,121 @@ const AdminVentas = () => {
             </button>
           </div>
 
-          <div className={styles.formGrid}>
+          {/* ── Sección 1: Producto ── */}
+          <div className={styles.formSection}>
+            <div className={styles.formSectionLabel}>📦 Producto</div>
 
-            {/* Tipo de producto */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Tipo de producto</label>
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>Tipo</label>
               <div className={styles.tipoRow}>
                 {TIPOS.map(t => (
-                  <button
-                    key={t.value}
+                  <button key={t.value} type="button"
                     className={`${styles.tipoBtn} ${form.tipo_producto === t.value ? styles.tipoBtnActive : ''}`}
                     onClick={() => handleTipo(t.value)}
-                    type="button"
-                  >
-                    {t.label}
-                  </button>
+                  >{t.label}</button>
                 ))}
               </div>
             </div>
 
-            {/* Selector del catálogo */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Producto del catálogo (opcional)</label>
-              <select
-                className={styles.input}
-                value={form.producto_id}
-                onChange={e => handleSelectProducto(e.target.value)}
-              >
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>
+                Del catálogo <span className={styles.labelHint}>(opcional — pre-carga datos)</span>
+              </label>
+              <select className={styles.darkSelect} value={form.producto_id}
+                onChange={e => handleSelectProducto(e.target.value)}>
                 <option value="">— Elegir del catálogo —</option>
                 {catalogoActivo.map(p => (
                   <option key={p.id} value={p.id}>
                     {p.nombre}{p.marca ? ` — ${p.marca}` : ''}{p.color ? ` (${p.color})` : ''}
                   </option>
                 ))}
-                <option value="">— Ingresar manualmente —</option>
               </select>
             </div>
 
-            {/* Nombre del producto (editable) */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Nombre del producto *</label>
-              <input className={styles.input} placeholder="Nombre del producto"
-                value={form.producto} onChange={e => setF('producto', e.target.value)} />
-            </div>
-
-            {/* Marca */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Marca / Categoría</label>
-              <input className={styles.input} placeholder="Marca o tipo"
-                value={form.marca} onChange={e => setF('marca', e.target.value)} />
-            </div>
-
-            {/* Precio */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Precio unitario (ARS) *</label>
-              <input className={styles.input} type="number" min="0" placeholder="0"
-                value={form.precio} onChange={e => setF('precio', e.target.value)} />
-            </div>
-
-            {/* Cantidad */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Cantidad *</label>
-              <input className={styles.input} type="number" min="1" placeholder="1"
-                value={form.cantidad} onChange={e => setF('cantidad', e.target.value)} />
-            </div>
-
-            {/* Fecha de la venta */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Fecha y hora de la venta</label>
-              <input className={styles.input} type="datetime-local"
-                value={form.fecha} onChange={e => setF('fecha', e.target.value)} />
-            </div>
-
-            {/* Tipo de comprador */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                <PersonOutlinedIcon sx={{ fontSize: '0.85rem', verticalAlign: 'middle', mr: 0.3 }} />
-                Comprador
-              </label>
-              <div className={styles.tipoRow} style={{ marginBottom: '0.5rem' }}>
-                <button
-                  type="button"
-                  className={`${styles.tipoBtn} ${form.tipo_comprador === 'registrado' ? styles.tipoBtnActive : ''}`}
-                  onClick={() => { setF('tipo_comprador', 'registrado'); setF('comprador', ''); setF('usuario_id', '') }}
-                >
-                  Usuario registrado
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.tipoBtn} ${form.tipo_comprador === 'libre' ? styles.tipoBtnActive : ''}`}
-                  onClick={() => { setF('tipo_comprador', 'libre'); setF('usuario_id', '') }}
-                >
-                  Sin cuenta
-                </button>
+            <div className={styles.formRow2col}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Nombre del producto *</label>
+                <input className={styles.input} placeholder="Nombre del producto"
+                  value={form.producto} onChange={e => setF('producto', e.target.value)} />
               </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Marca / Categoría</label>
+                <input className={styles.input} placeholder="Marca o tipo"
+                  value={form.marca} onChange={e => setF('marca', e.target.value)} />
+              </div>
+            </div>
+          </div>
 
-              {form.tipo_comprador === 'registrado' ? (
-                <select
-                  className={styles.input}
-                  value={form.usuario_id}
-                  onChange={e => handleSelectUsuario(e.target.value)}
-                >
-                  <option value="">— Seleccionar usuario —</option>
-                  {usuarios.map(u => (
-                    <option key={u.id} value={u.id}>
-                      {u.nombre || '(sin nombre)'} — {u.email}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input className={styles.input} placeholder="Nombre del cliente"
-                  value={form.comprador} onChange={e => setF('comprador', e.target.value)} />
-              )}
+          {/* ── Sección 2: Precio y fecha ── */}
+          <div className={styles.formSection}>
+            <div className={styles.formSectionLabel}>💰 Precio y fecha</div>
+            <div className={styles.formRow3col}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Precio unitario (ARS) *</label>
+                <input className={styles.input} type="number" min="0" placeholder="0"
+                  value={form.precio} onChange={e => setF('precio', e.target.value)} />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Cantidad *</label>
+                <input className={styles.input} type="number" min="1" placeholder="1"
+                  value={form.cantidad} onChange={e => setF('cantidad', e.target.value)} />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Fecha y hora</label>
+                <input className={styles.input} type="datetime-local"
+                  value={form.fecha} onChange={e => setF('fecha', e.target.value)} />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Sección 3: Comprador ── */}
+          <div className={styles.formSection}>
+            <div className={styles.formSectionLabel}>
+              <PersonOutlinedIcon sx={{ fontSize: '0.8rem', verticalAlign: 'middle', mr: 0.3 }} />
+              Comprador
+            </div>
+            <div className={styles.tipoRow} style={{ marginBottom: '0.75rem' }}>
+              <button type="button"
+                className={`${styles.tipoBtn} ${form.tipo_comprador === 'registrado' ? styles.tipoBtnActive : ''}`}
+                onClick={() => { setF('tipo_comprador', 'registrado'); setF('comprador', ''); setF('usuario_id', '') }}
+              >Usuario registrado</button>
+              <button type="button"
+                className={`${styles.tipoBtn} ${form.tipo_comprador === 'libre' ? styles.tipoBtnActive : ''}`}
+                onClick={() => { setF('tipo_comprador', 'libre'); setF('usuario_id', '') }}
+              >Sin cuenta</button>
             </div>
 
-            {/* Nota */}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Nota adicional</label>
-              <input className={styles.input} placeholder="Canal de venta, observaciones..."
-                value={form.nota} onChange={e => setF('nota', e.target.value)} />
+            <div className={styles.formRow2col}>
+              <div className={styles.formGroup}>
+                {form.tipo_comprador === 'registrado' ? (
+                  <select className={styles.darkSelect} value={form.usuario_id}
+                    onChange={e => handleSelectUsuario(e.target.value)}>
+                    <option value="">— Seleccionar usuario registrado —</option>
+                    {usuarios.map(u => (
+                      <option key={u.id} value={u.id}>
+                        {u.nombre || '(sin nombre)'} — {u.email}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input className={styles.input} placeholder="Nombre del cliente (sin cuenta)"
+                    value={form.comprador} onChange={e => setF('comprador', e.target.value)} />
+                )}
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Nota adicional</label>
+                <input className={styles.input} placeholder="Canal de venta, observaciones..."
+                  value={form.nota} onChange={e => setF('nota', e.target.value)} />
+              </div>
             </div>
-
           </div>
 
           <div className={styles.formFooter}>
             <span className={styles.formTotal}>
               Total: <strong>{fmt(totalFila)}</strong>
             </span>
-            <button
-              className={styles.btnGuardar}
-              onClick={handleGuardar}
-              disabled={guardando || !form.producto.trim() || !form.precio}
-            >
+            <button className={styles.btnGuardar} onClick={handleGuardar}
+              disabled={guardando || !form.producto.trim() || !form.precio}>
               {guardando
                 ? <CircularProgress size={14} sx={{ color: '#000' }} />
                 : <><CheckCircleOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} /> Registrar venta</>
@@ -510,13 +547,24 @@ const AdminVentas = () => {
                   </td>
                   <td>
                     {v.is_activo && (
-                      <button
-                        className={styles.btnEliminar}
-                        onClick={() => handleEliminar(v)}
-                        title="Desactivar venta"
-                      >
-                        <DeleteOutlineIcon sx={{ fontSize: '1rem' }} />
-                      </button>
+                      <div className={styles.acciones}>
+                        {v.tipo === 'manual' && (
+                          <button
+                            className={styles.btnEditar}
+                            onClick={() => handleAbrirEditar(v)}
+                            title="Editar venta"
+                          >
+                            <EditOutlinedIcon sx={{ fontSize: '1rem' }} />
+                          </button>
+                        )}
+                        <button
+                          className={styles.btnEliminar}
+                          onClick={() => handleEliminar(v)}
+                          title="Desactivar venta"
+                        >
+                          <DeleteOutlineIcon sx={{ fontSize: '1rem' }} />
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -534,6 +582,85 @@ const AdminVentas = () => {
               </tfoot>
             )}
           </table>
+        </div>
+      )}
+
+      {/* ── Modal de edición ── */}
+      {editando && (
+        <div className={styles.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) setEditando(null) }}>
+          <div className={styles.modalBox}>
+            <div className={styles.modalHeader}>
+              <span className={styles.modalTitle}>
+                <EditOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.4 }} />
+                Editar venta manual
+              </span>
+              <button className={styles.formClose} onClick={() => setEditando(null)}>
+                <CloseOutlinedIcon sx={{ fontSize: '1rem' }} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <div className={styles.formRow2col}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Producto *</label>
+                  <input className={styles.input} value={editForm.producto || ''}
+                    onChange={e => setEF('producto', e.target.value)} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Marca / Categoría</label>
+                  <input className={styles.input} value={editForm.marca || ''}
+                    onChange={e => setEF('marca', e.target.value)} />
+                </div>
+              </div>
+
+              <div className={styles.formRow3col} style={{ marginTop: '0.75rem' }}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Precio unitario (ARS) *</label>
+                  <input className={styles.input} type="number" min="0"
+                    value={editForm.precio || ''} onChange={e => setEF('precio', e.target.value)} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Cantidad *</label>
+                  <input className={styles.input} type="number" min="1"
+                    value={editForm.cantidad || ''} onChange={e => setEF('cantidad', e.target.value)} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Fecha y hora</label>
+                  <input className={styles.input} type="datetime-local"
+                    value={editForm.fecha || ''} onChange={e => setEF('fecha', e.target.value)} />
+                </div>
+              </div>
+
+              <div className={styles.formRow2col} style={{ marginTop: '0.75rem' }}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Comprador</label>
+                  <input className={styles.input} placeholder="Nombre del cliente"
+                    value={editForm.comprador || ''} onChange={e => setEF('comprador', e.target.value)} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Nota adicional</label>
+                  <input className={styles.input} placeholder="Canal de venta, observaciones..."
+                    value={editForm.nota || ''} onChange={e => setEF('nota', e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <span className={styles.formTotal}>
+                Total: <strong>{fmt(Number(editForm.precio || 0) * Number(editForm.cantidad || 1))}</strong>
+              </span>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button className={styles.btnCancelar} onClick={() => setEditando(null)}>Cancelar</button>
+                <button className={styles.btnGuardar} onClick={handleActualizar}
+                  disabled={guardandoEdit || !editForm.producto?.trim() || !editForm.precio}>
+                  {guardandoEdit
+                    ? <CircularProgress size={14} sx={{ color: '#000' }} />
+                    : <><CheckCircleOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} /> Guardar cambios</>
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

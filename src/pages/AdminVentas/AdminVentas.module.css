@@ -229,11 +229,12 @@
 .formCard {
   max-width: 1200px;
   margin: 0 auto 1.5rem;
-  background: rgba(245,158,11,0.04);
-  border: 1px solid rgba(245,158,11,0.18);
-  border-radius: 14px;
-  padding: 1.25rem 1.5rem;
+  background: rgba(15, 15, 15, 0.95);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 16px;
+  padding: 0;
   animation: fadeIn 0.2s ease;
+  overflow: hidden;
 }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
@@ -242,7 +243,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.1rem;
+  padding: 1rem 1.5rem;
+  background: rgba(245,158,11,0.06);
+  border-bottom: 1px solid rgba(245,158,11,0.15);
 }
 
 .formTitle {
@@ -260,20 +263,60 @@
   display: flex;
   align-items: center;
   transition: color 0.2s;
+  padding: 4px;
+  border-radius: 6px;
 }
-.formClose:hover { color: #ef4444; }
+.formClose:hover { color: #ef4444; background: rgba(239,68,68,0.08); }
 
-.formGrid {
+/* Secciones del form */
+.formSection {
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.formSection:last-of-type { border-bottom: none; }
+
+.formSectionLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #f59e0b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Layouts de columnas */
+.formRow2col {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.875rem;
-  margin-bottom: 1rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.formRow3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .formRow2col,
+  .formRow3col { grid-template-columns: 1fr; }
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+}
+
+.formGroupFull {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.75rem;
 }
 
 .label {
@@ -283,6 +326,14 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-family: 'Poppins', sans-serif;
+}
+
+.labelHint {
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: #334155;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .input {
@@ -295,16 +346,41 @@
   padding: 0.5rem 0.75rem;
   outline: none;
   transition: border-color 0.2s;
+  color-scheme: dark;
 }
 .input:focus { border-color: rgba(245,158,11,0.4); }
 .input::placeholder { color: #475569; }
+
+/* Select oscuro — sobreescribe el fondo blanco nativo */
+.darkSelect {
+  background: #1a1a1a;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  color: #f1f5f9;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.83rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  cursor: pointer;
+  color-scheme: dark;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+}
+.darkSelect:focus { border-color: rgba(245,158,11,0.4); }
+.darkSelect option { background: #1a1a1a; color: #f1f5f9; }
 
 .formFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1rem 1.5rem;
+  background: rgba(255,255,255,0.02);
   border-top: 1px solid rgba(255,255,255,0.06);
-  padding-top: 0.875rem;
 }
 
 .formTotal {
@@ -403,8 +479,105 @@
 }
 .btnEliminar:hover { color: #ef4444; background: rgba(239,68,68,0.08); }
 
+/* ── Botón editar ─────────────────── */
+.btnEditar {
+  background: none;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.btnEditar:hover { color: #818cf8; background: rgba(99,102,241,0.1); }
+
+/* ── Grupo de acciones (edit + delete) ─ */
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 /* ── Fila desactivada ───────────────── */
 .rowInactiva td {
   opacity: 0.35;
   text-decoration: line-through;
 }
+
+/* ── Modal de edición ─────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.18s ease;
+}
+
+.modalBox {
+  background: #111111;
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 680px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: rgba(245,158,11,0.06);
+  border-bottom: 1px solid rgba(245,158,11,0.15);
+}
+
+.modalTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #818cf8;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  align-items: center;
+}
+
+.modalBody {
+  padding: 1.25rem 1.5rem;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ── Botón cancelar ──────────────── */
+.btnCancelar {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #64748b;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btnCancelar:hover { border-color: rgba(255,255,255,0.2); color: #f1f5f9; }

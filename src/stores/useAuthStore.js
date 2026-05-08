@@ -96,6 +96,30 @@ const useAuthStore = create((set, get) => ({
     if (error) console.error('Error login Google:', error)
   },
 
+  // ── Login con email/contraseña ─────────────────────
+  loginConEmail: async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    return { data, error }
+  },
+
+  // ── Registro con email/contraseña ─────────────────
+  registrarConEmail: async (email, password, nombre) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: nombre } },
+    })
+    return { data, error }
+  },
+
+  // ── Reset de contraseña ────────────────────────────
+  resetPassword: async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    return { error }
+  },
+
   // ── Logout ─────────────────────────────────────────
   logout: async () => {
     await supabase.auth.signOut()

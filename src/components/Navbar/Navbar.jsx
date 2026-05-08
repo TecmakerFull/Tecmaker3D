@@ -198,6 +198,8 @@ const Navbar = () => {
 
         {/* Acciones */}
         <div className={styles.navActions}>
+          {session ? <UserMenu /> : <LoginButton />}
+
           <button className={styles.cartBtn} onClick={openCart}
             aria-label="Abrir carrito de compras" id="btn-abrir-carrito"
           >
@@ -207,8 +209,6 @@ const Navbar = () => {
               <span className={styles.cartBadge} key={totalItems}>{totalItems}</span>
             )}
           </button>
-
-          {session ? <UserMenu /> : <LoginButton />}
 
           <button className={styles.mobileMenuBtn}
             onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menú"

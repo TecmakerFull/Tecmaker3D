@@ -5,6 +5,9 @@ import SupportIcon              from '@mui/icons-material/Support'
 import ConstructionOutlinedIcon from '@mui/icons-material/ConstructionOutlined'
 import ThreeDRotationIcon       from '@mui/icons-material/ThreeDRotation'
 import ViewInArOutlinedIcon     from '@mui/icons-material/ViewInArOutlined'
+import SquareFootOutlinedIcon   from '@mui/icons-material/SquareFootOutlined'
+import BiotechOutlinedIcon      from '@mui/icons-material/BiotechOutlined'
+import DrawOutlinedIcon         from '@mui/icons-material/DrawOutlined'
 import styles from './Home.module.css'
 
 // ========================
@@ -114,7 +117,7 @@ const Home = () => {
       <section className={styles.aboutSection}>
         <div className={styles.aboutGrid}>
           <div className={styles.aboutImage}>
-            <img src="/ender.jpg" alt="Impresora 3D Ender TecMaker" loading="lazy" />
+            <img src="/bambu_a1.jpg" alt="Impresora 3D Bambu Lab A1 TecMaker" loading="lazy" />
           </div>
           <div>
             <Typography className={styles.sectionLabel}>SOBRE NOSOTROS</Typography>
@@ -145,6 +148,74 @@ const Home = () => {
               </a>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Diseño 3D Personalizado */}
+      <section className={styles.disenioSection}>
+        <div className={styles.disenioInner}>
+
+          <div className={styles.disenioHeader}>
+            <Typography className={styles.sectionLabel}>DISEÑO PERSONALIZADO</Typography>
+            <Typography component="h2" className={styles.sectionTitle}>
+              De la idea al objeto real
+            </Typography>
+            <Typography className={styles.disenioSubtitle}>
+              ¿Tenés un plano, una pieza rota o una idea en mente? Podemos modelarlo y convertirlo en realidad.
+            </Typography>
+          </div>
+
+          <div className={styles.disenioGrid}>
+            <div className={styles.disenioCard}>
+              <div className={styles.disenioCardIcon}>
+                <SquareFootOutlinedIcon sx={{ fontSize: '2.2rem', color: '#818cf8' }} />
+              </div>
+              <h3 className={styles.disenioCardTitle}>Diseño desde planos</h3>
+              <p className={styles.disenioCardText}>
+                Trabajamos con planos técnicos en cualquier formato. Modelamos la pieza con precisión dimensional para que quede exactamente como fue concebida.
+              </p>
+            </div>
+            <div className={styles.disenioCard}>
+              <div className={styles.disenioCardIcon}>
+                <BiotechOutlinedIcon sx={{ fontSize: '2.2rem', color: '#818cf8' }} />
+              </div>
+              <h3 className={styles.disenioCardTitle}>Ingeniería inversa</h3>
+              <p className={styles.disenioCardText}>
+                Recreamos piezas a partir de muestras físicas. Ideal para repuestos descontinuados, componentes rotos o partes que ya no se consiguen en el mercado.
+              </p>
+            </div>
+            <div className={styles.disenioCard}>
+              <div className={styles.disenioCardIcon}>
+                <DrawOutlinedIcon sx={{ fontSize: '2.2rem', color: '#818cf8' }} />
+              </div>
+              <h3 className={styles.disenioCardTitle}>Diseño a medida</h3>
+              <p className={styles.disenioCardText}>
+                Convertimos tus ideas en modelos 3D. Describinos lo que necesitás y desarrollamos el diseño desde cero adaptado a tus requerimientos.
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.disenioSoftware}>
+            <p className={styles.disenioSoftwareLabel}>Herramientas profesionales que utilizamos</p>
+            <div className={styles.disenioSoftwareLogos}>
+              <div className={styles.softwareBadge}>
+                <img src="/icono_fusion360.png" alt="Autodesk Fusion 360" className={styles.softwareLogo} />
+                <div className={styles.softwareInfo}>
+                  <span className={styles.softwareName}>Fusion 360</span>
+                  <span className={styles.softwareBy}>Autodesk</span>
+                </div>
+              </div>
+              <div className={styles.softwareDivider} />
+              <div className={styles.softwareBadge}>
+                <img src="/icono_solidworks.png" alt="SolidWorks" className={styles.softwareLogo} />
+                <div className={styles.softwareInfo}>
+                  <span className={styles.softwareName}>SolidWorks</span>
+                  <span className={styles.softwareBy}>Dassault Systèmes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
     </main>
