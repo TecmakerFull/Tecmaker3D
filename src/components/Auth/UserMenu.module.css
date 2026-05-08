@@ -300,7 +300,40 @@
   box-sizing: border-box;
 }
 .input:focus { border-color: rgba(245,158,11,0.4); }
-.input::placeholder { color: #475569; }
+.input::placeholder { color: #94a3b8; }
+
+/* Wrapper con ojito */
+.passWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.passWrap .input {
+  padding-right: 2.8rem;
+  flex: 1;
+}
+.eyeBtn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  color: #64748b;
+  transition: color 0.15s;
+  user-select: none;
+}
+.eyeBtn:hover { color: #f1f5f9; }
+
+.inputPin {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  padding: 0.7rem 1rem;
+}
 
 .submitBtn {
   width: 100%;
@@ -360,3 +393,20 @@
   text-underline-offset: 3px;
 }
 .modeLink:hover { color: #f59e0b; }
+
+/* Reenvío confirmación */
+.reenvioWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.reenvioText {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-family: 'Poppins', sans-serif;
+}

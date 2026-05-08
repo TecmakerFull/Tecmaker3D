@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import ReactDOM from 'react-dom'
 import useAuthStore from '../../stores/useAuthStore'
 import useReservasStore from '../../stores/useReservasStore'
 import styles from './UserMenu.module.css'
@@ -15,17 +16,20 @@ const GoogleIcon = () => (
 
 // ── Modal de Login ──────────────────────────────────────
 export const LoginModal = ({ onClose }) => {
-  const { loginConGoogle, loginConEmail, registrarConEmail, resetPassword } = useAuthStore()
-  const [modo, setModo] = useState('login') // 'login' | 'registro' | 'reset'
+  const { loginConGoogle, loginConEmail, registrarConEmail, resetPassword, reenviarConfirmacion } = useAuthStore()
+  const [modo, setModo] = useState('login')
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [nombre, setNombre]     = useState('')
+  const [showPass, setShowPass] = useState(false)
+  const [registroOk, setRegistroOk] = useState(false)  // cuenta creada, esperando confirmación
   const [cargando, setCargando] = useState(false)
+  const [reenvio, setReenvio]   = useState('')         // mensaje del reenvío
   const [error, setError]       = useState('')
   const [ok, setOk]             = useState('')
   const overlayRef = useRef()
 
-  const reset = () => { setError(''); setOk('') }
+  const reset = () => { setError(''); setOk(''); setReenvio('') }
 
   const handleGoogle = () => { loginConGoogle(); onClose() }
 
@@ -33,37 +37,56 @@ export const LoginModal = ({ onClose }) => {
     e.preventDefault()
     reset()
     setCargando(true)
+
     if (modo === 'login') {
       const { error } = await loginConEmail(email, password)
-      if (error) setError(
-        error.message.includes('Invalid') ? 'Email o contraseña incorrectos.' : error.message
-      )
-      else onClose()
+      if (error) {
+        const msg = error.message
+        if (msg.includes('Invalid') || msg.includes('invalid'))   setError('Email o contraseña incorrectos.')
+        else if (msg.includes('Email not confirmed'))              setError('Tu cuenta no está confirmada. Revisá tu email o reenvía el link.')
+        else setError(msg)
+      } else onClose()
+
     } else if (modo === 'registro') {
       const { error } = await registrarConEmail(email, password, nombre)
-      if (error) setError(error.message)
-      else setOk('¡Cuenta creada! Revisá tu email para confirmar.')
+      if (error) {
+        const msg = error.message
+        if (msg.includes('already registered') || msg.includes('already been registered'))
+          setError('Este email ya tiene una cuenta. ¿Querés iniciar sesión o recuperar tu contraseña?')
+        else setError(msg)
+      } else {
+        setRegistroOk(true)
+        setOk(`¡Cuenta creada! Enviamos un email a ${email} — hacé click en el enlace para activarla.`)
+      }
+
     } else {
       const { error } = await resetPassword(email)
       if (error) setError(error.message)
       else setOk('Te enviamos un email para restablecer tu contraseña.')
     }
+
     setCargando(false)
   }
 
-  return (
+  const handleReenviar = async () => {
+    setReenvio('')
+    const { error } = await reenviarConfirmacion(email)
+    if (error) setReenvio('⚠️ No se pudo reenviar: ' + error.message)
+    else setReenvio('✅ Email reenviado. Revisá tu bandeja de entrada.')
+  }
+
+  const modal = (
     <div
       className={styles.modalOverlay}
       ref={overlayRef}
-      onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
       <div className={styles.modalBox}>
 
         {/* Header */}
         <div className={styles.modalHeader}>
           <span className={styles.modalTitle}>
-            {modo === 'login'    ? '👋 Iniciar sesión'     :
-             modo === 'registro' ? '✨ Crear cuenta'       :
+            {modo === 'login'    ? '👋 Iniciar sesión'      :
+             modo === 'registro' ? '✨ Crear cuenta'        :
                                    '🔑 Recuperar contraseña'}
           </span>
           <button className={styles.modalClose} onClick={onClose}>✕</button>
@@ -71,19 +94,9 @@ export const LoginModal = ({ onClose }) => {
 
         <div className={styles.modalBody}>
 
-          {/* Google */}
-          {modo !== 'reset' && (
-            <>
-              <button className={styles.googleBtn} onClick={handleGoogle}>
-                <GoogleIcon />
-                {modo === 'login' ? 'Continuar con Google' : 'Registrarse con Google'}
-              </button>
-              <div className={styles.divider}><span>o con email</span></div>
-            </>
-          )}
-
-          {/* Form */}
+          {/* Form email/contraseña */}
           <form onSubmit={handleEmail} className={styles.form}>
+
             {modo === 'registro' && (
               <input
                 className={styles.input}
@@ -95,6 +108,7 @@ export const LoginModal = ({ onClose }) => {
                 autoFocus
               />
             )}
+
             <input
               className={styles.input}
               type="email"
@@ -104,25 +118,47 @@ export const LoginModal = ({ onClose }) => {
               required
               autoFocus={modo !== 'registro'}
             />
+
             {modo !== 'reset' && (
-              <input
-                className={styles.input}
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={e => { setPassword(e.target.value); reset() }}
-                required
-                minLength={6}
-              />
+              <div className={styles.passWrap}>
+                <input
+                  className={styles.input}
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="Contraseña (mín. 6 caracteres)"
+                  value={password}
+                  onChange={e => { setPassword(e.target.value); reset() }}
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  className={styles.eyeBtn}
+                  onClick={() => setShowPass(v => !v)}
+                  tabIndex={-1}
+                >
+                  {showPass ? '🙈' : '👁'}
+                </button>
+              </div>
             )}
 
             {error && <p className={styles.errorMsg}>⚠️ {error}</p>}
             {ok    && <p className={styles.okMsg}>✅ {ok}</p>}
 
-            <button className={styles.submitBtn} type="submit" disabled={cargando}>
-              {cargando ? 'Procesando...' :
-               modo === 'login'    ? 'Ingresar'             :
-               modo === 'registro' ? 'Crear cuenta'         :
+            {/* Botón reenviar confirmación */}
+            {registroOk && (
+              <div className={styles.reenvioWrap}>
+                <span className={styles.reenvioText}>¿No llegó el email?</span>
+                <button type="button" className={styles.modeLink} onClick={handleReenviar}>
+                  Reenviar confirmación
+                </button>
+                {reenvio && <p className={reenvio.startsWith('✅') ? styles.okMsg : styles.errorMsg} style={{margin:0}}>{reenvio}</p>}
+              </div>
+            )}
+
+            <button className={styles.submitBtn} type="submit" disabled={cargando || registroOk}>
+              {cargando           ? 'Procesando...' :
+               modo === 'login'    ? 'Ingresar'     :
+               modo === 'registro' ? 'Crear cuenta' :
                                      'Enviar email'}
             </button>
           </form>
@@ -144,10 +180,23 @@ export const LoginModal = ({ onClose }) => {
             )}
           </div>
 
+          {/* Separador + Google al final */}
+          {modo !== 'reset' && (
+            <>
+              <div className={styles.divider}><span>o iniciá sesión con</span></div>
+              <button className={styles.googleBtn} onClick={handleGoogle}>
+                <GoogleIcon />
+                Continuar con Google
+              </button>
+            </>
+          )}
+
         </div>
       </div>
     </div>
   )
+
+  return ReactDOM.createPortal(modal, document.body)
 }
 
 // ── Botón cuando NO hay sesión ──────────────────────────

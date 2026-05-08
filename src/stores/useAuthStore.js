@@ -124,6 +124,31 @@ const useAuthStore = create((set, get) => ({
   logout: async () => {
     await supabase.auth.signOut()
     set({ session: null, perfil: null, esAdmin: false })
+    window.location.replace('/')
+  },
+
+  // ── Reenviar email de confirmación ────────────────
+  reenviarConfirmacion: async (email) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    })
+    return { error }
+  },
+
+  enviarOTP: async (email) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    })
+    return { error }
+  },
+
+  verificarOTP: async (email, token) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email, token, type: 'email',
+    })
+    return { data, error }
   },
 
   // ── Actualizar perfil (nombre, teléfono, etc.) ─────

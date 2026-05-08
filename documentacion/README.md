@@ -66,7 +66,7 @@ TecMaker 3D/
     ├── stores/
     │   ├── useCartStore.js     # Carrito (Zustand)
     │   ├── useStockStore.js    # Stock y catálogo (Zustand + Supabase)
-    │   ├── useAuthStore.js     # Autenticación Google OAuth (Zustand + Supabase)
+    │   ├── useAuthStore.js     # Autenticación Google OAuth + Email/Password (Zustand + Supabase)
     │   └── useReservasStore.js # Reservas temporales 30min (Zustand + Supabase)
     ├── components/
     │   ├── Navbar/          # Navegación principal (condicional según rol)
@@ -164,6 +164,22 @@ TecMaker 3D/
 | `cantidad` | int | Unidades compradas |
 | `total` | numeric | Precio total |
 | `created_at` | timestamp | Fecha de compra |
+
+#### `ventas_manuales`
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | uuid | PK |
+| `producto_id` | int | FK → productos.id |
+| `cantidad` | int | Unidades vendidas |
+| `precio_unitario` | numeric | Precio por unidad aplicado |
+| `total` | numeric | precio_unitario × cantidad |
+| `comprador_nombre` | text | Nombre del comprador (opcional) |
+| `comprador_email` | text | Email del comprador (opcional) |
+| `fecha_venta` | timestamp | Fecha y hora de la venta |
+| `notas` | text | Observaciones adicionales |
+| `is_activo` | boolean | `FALSE` = soft-delete (anulada), no se elimina para mantener integridad contable |
+| `creado_por` | uuid | FK → auth.users.id (admin que registró) |
+| `created_at` | timestamp | Fecha de registro |
 
 #### `cotizaciones`
 | Campo | Tipo | Descripción |
@@ -436,7 +452,7 @@ Al cargar desde Supabase, se normalizan campos snake_case a camelCase:
 
 ---
 
-### `useAuthStore` — Autenticación Google OAuth
+### `useAuthStore` — Autenticación (Google OAuth + Email/Contraseña)
 
 **Estado:**
 
@@ -454,8 +470,17 @@ Al cargar desde Supabase, se normalizan campos snake_case a camelCase:
 | `inicializar()` | Llama `getSession()` y configura `onAuthStateChange`. Llamar 1 vez en App.jsx |
 | `cargarPerfil(userId)` | Lee `perfiles` por ID. Si no existe, lo crea automáticamente |
 | `loginConGoogle()` | Abre el flujo OAuth de Google (redirect) |
-| `logout()` | Cierra sesión y limpia estado |
+| `loginConEmail(email, password)` | Login con email y contraseña via `signInWithPassword` |
+| `registrarConEmail(email, password, nombre)` | Registro nuevo usuario con email/contraseña. Requiere confirmación de email. |
+| `resetPassword(email)` | Envía email de restablecimiento de contraseña |
+| `reenviarConfirmacion(email)` | Reenvía el email de confirmación de registro (útil si no llegó) |
+| `logout()` | Cierra sesión, limpia estado y redirige a `/` con `window.location.replace` |
 | `actualizarPerfil(datos)` | UPDATE en `perfiles` (nombre, teléfono) |
+
+**Configuración Supabase necesaria:**
+- **Sign In / Providers → Email:** habilitado (ON)
+- **Confirm email:** habilitado (ON) — el usuario debe confirmar su email antes del primer login
+- **Email Templates:** personalizados en español (Confirm signup, Reset password)
 
 ---
 
@@ -520,14 +545,22 @@ const { data, loading, error } = useFetch(url, retryKey)
 - Menú hamburguesa para mobile (`menuOpen` state)
 - Usa `<NavLink>` de React Router para resaltar la ruta activa
 - Muestra badge con cantidad de items en el carrito (desde `useCartStore`)
-- Links principales: Inicio / Filamentos / Accesorios / Tienda / STL / Contacto
-- Links de acción: 🛒 Carrito / Iniciar sesión
+- Links principales: Inicio / Tienda (dropdown) / Calculadora 3D / Contacto
+- Links de acción (de izquierda a derecha): **Iniciar sesión → 🛒 Carrito → Hamburguesa**
 - Links admin (visible solo si `esAdmin`): Stock / Reservas / Usuarios / Ventas
-- La **Calculadora** tiene su propio link desde la Home y también es accesible desde el nav
+
+**Modal de Login (`LoginModal`):**
+- Renderizado con `ReactDOM.createPortal` sobre `document.body` para centrado correcto independiente del Navbar
+- Tres modos: `login` (email + contraseña) | `registro` (nombre + email + contraseña + verificación) | `reset` (recuperar contraseña)
+- Cada modo con Google OAuth como opción secundaria (separador "o iniciá sesión con")
+- Toggle 👁 para mostrar/ocultar contraseña
+- Solo cierra con el botón ✕ (no cierra al hacer click fuera)
+- Mensajes de error localizados en español
+- Botón "Reenviar confirmación" aparece tras registro exitoso
 
 **Props:** ninguna
 
-**Dependencias:** `useCartStore`, `react-router-dom`, MUI Icons
+**Dependencias:** `useCartStore`, `useAuthStore`, `react-router-dom`, MUI Icons, `ReactDOM`
 
 ---
 
@@ -633,14 +666,17 @@ const { data, loading, error } = useFetch(url, retryKey)
 
 ### `Home` — `/`
 
-Página de inicio con 4 secciones:
+Página de inicio con 5 secciones:
 
 1. **Hero:** Badge, título "Materializando Ideas", logo animado, subtítulo, CTAs (Ver Filamentos / Calculadora 3D)
 2. **Stats:** 24+ Filamentos | 5 Marcas | 3 Tipos | 100% Calidad
 3. **Categorías:** Grid de 4 cards coloridas con icono grande (Filamentos, Accesorios, Tienda, STL) con links internos
-4. **Sobre Nosotros:** Imagen de impresora + texto descriptivo + links a plataformas STL
-
-> Las cards de categoría tienen un color temático con fondo translúcido y efecto hover de escala.
+4. **Sobre Nosotros:** Imagen de la Bambu Lab A1 (`bambu_a1.jpg`) centrada + texto descriptivo + links a plataformas STL
+5. **Diseño 3D Personalizado:** Sección premium con 3 tarjetas de servicios (íconos MUI: `SquareFootOutlined`, `BiotechOutlined`, `DrawOutlined`):
+   - *Diseño desde planos:* modelado a partir de planos técnicos
+   - *Ingeniería inversa:* recreación de piezas físicas
+   - *Diseño a medida:* modelos 3D desde cero
+   - Panel de herramientas profesionales con logos de **Fusion 360** (Autodesk) y **SolidWorks** (Dassault Systèmes)
 
 ---
 
