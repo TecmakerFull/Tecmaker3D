@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Typography, Button, CircularProgress } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
+import AddIcon                from '@mui/icons-material/Add'
+import DownloadOutlinedIcon   from '@mui/icons-material/DownloadOutlined'
 import { supabase } from '../../lib/supabase'
 import useStockStore from '../../stores/useStockStore'
 import NuevoProductoModal from './NuevoProductoModal'
@@ -145,6 +146,108 @@ const StockManager = () => {
     return '#22c55e'
   }
 
+  // ── Exportar PDF de recuento ───────────────────────
+  const exportarRecuento = () => {
+    const fecha = new Date().toLocaleDateString('es-AR', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    })
+    const fmtPrecio = (n) =>
+      new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n || 0)
+
+    // Todos los productos: filamentos + accesorios, ordenados por tipo y nombre
+    const todos = [
+      ...catalogoFilamentos.map(p => ({ ...p, _tipo: 'Filamento' })),
+      ...catalogoAccesorios.map(p => ({ ...p, _tipo: 'Accesorio' })),
+    ].sort((a, b) => {
+      if (a._tipo !== b._tipo) return a._tipo.localeCompare(b._tipo)
+      return (a.nombre || '').localeCompare(b.nombre || '')
+    })
+
+    const filas = todos.map((p, i) => {
+      const stockActual = stock[p.id] || 0
+      const precio      = precios[p.id] ?? p.precio ?? 0
+      const colorStock  = stockActual === 0 ? '#ef4444' : stockActual <= 3 ? '#d97706' : '#16a34a'
+      return `
+        <tr>
+          <td class="num">${i + 1}</td>
+          <td class="tipo">${p._tipo}</td>
+          <td>${p.nombre || '—'}</td>
+          <td>${p.marca || p.categoria || '—'}</td>
+          <td class="num" style="color:${colorStock};font-weight:700">${stockActual}</td>
+          <td class="num">${fmtPrecio(precio)}</td>
+          <td class="check"></td>
+          <td class="check"></td>
+        </tr>`
+    }).join('')
+
+    const html = `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"/>
+<title>Recuento de Stock — TecMaker 3D</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:11px;color:#1e293b;background:#fff;padding:1.5cm 2cm}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:3px solid #f59e0b}
+.brand{font-size:20px;font-weight:800;color:#0f172a}
+.brand span{color:#f59e0b}
+.meta{text-align:right;font-size:10px;color:#475569;line-height:1.8}
+.meta strong{color:#0f172a}
+h2{font-size:13px;font-weight:700;color:#0f172a;margin-bottom:1rem}
+table{width:100%;border-collapse:collapse}
+th{background:#f8fafc;color:#64748b;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:6px 8px;text-align:left;border:1px solid #e2e8f0}
+td{padding:5px 8px;border:1px solid #e2e8f0;font-size:10.5px;color:#334155}
+tr:nth-child(even) td{background:#f8fafc}
+.num{text-align:right}
+.tipo{color:#64748b;font-size:9.5px}
+.check{width:60px;background:#fff;min-width:50px}
+.footer{margin-top:1.5rem;padding-top:.5rem;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;display:flex;justify-content:space-between}
+.legend{display:flex;gap:1.5rem;margin-bottom:.75rem;font-size:9.5px;color:#64748b}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+@media print{body{padding:1cm 1.5cm}}
+</style></head><body>
+<div class="header">
+  <div>
+    <div class="brand">TecMaker <span>3D</span></div>
+    <div style="font-size:10px;color:#64748b;margin-top:3px">Impresión 3D · Filamentos · Accesorios</div>
+  </div>
+  <div class="meta">
+    <div><strong>Hoja de recuento de inventario</strong></div>
+    <div>Fecha: ${fecha}</div>
+    <div>Total de items: ${todos.length}</div>
+  </div>
+</div>
+<h2>📦 Inventario para recuento físico</h2>
+<div class="legend">
+  <span><span class="dot" style="background:#ef4444"></span>Sin stock</span>
+  <span><span class="dot" style="background:#d97706"></span>Stock bajo (≤3)</span>
+  <span><span class="dot" style="background:#16a34a"></span>Stock OK</span>
+</div>
+<table>
+  <thead><tr>
+    <th style="width:30px">#</th>
+    <th style="width:65px">Tipo</th>
+    <th>Producto</th>
+    <th style="width:100px">Marca / Cat.</th>
+    <th style="width:55px">Stock sistema</th>
+    <th style="width:80px">Precio unit.</th>
+    <th style="width:60px;text-align:center">Contado ✓</th>
+    <th style="width:60px;text-align:center">Diferencia</th>
+  </tr></thead>
+  <tbody>${filas}</tbody>
+</table>
+<div class="footer">
+  <span>TecMaker 3D · 3d.tecmaker.com.ar · Rosario, Santa Fe</span>
+  <span>Firma responsable: ________________________</span>
+</div>
+</body></html>`
+
+    const win = window.open('', '_blank', 'width=1000,height=750')
+    win.document.write(html)
+    win.document.close()
+    win.focus()
+    setTimeout(() => win.print(), 500)
+  }
+
   // ── Cargando sesión ────────────────────────────────
   if (authLoading) {
     return (
@@ -258,13 +361,22 @@ const StockManager = () => {
                 ⚙️ Accesorios ({catalogoAccesorios.length})
               </button>
             </div>
-            <button
-              className={styles.btnNuevo}
-              onClick={() => setModalAbierto(true)}
-              id="btn-nuevo-producto"
-            >
-              <AddIcon fontSize="small" /> Nuevo Producto
-            </button>
+            <div className={styles.tabsActions}>
+              <button
+                className={styles.btnExportar}
+                onClick={exportarRecuento}
+                title="Descargar planilla de recuento físico (PDF imprimible)"
+              >
+                <DownloadOutlinedIcon fontSize="small" /> Recuento PDF
+              </button>
+              <button
+                className={styles.btnNuevo}
+                onClick={() => setModalAbierto(true)}
+                id="btn-nuevo-producto"
+              >
+                <AddIcon fontSize="small" /> Nuevo Producto
+              </button>
+            </div>
           </div>
 
           <div className={styles.tableWrapper}>

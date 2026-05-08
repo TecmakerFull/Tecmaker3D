@@ -177,6 +177,23 @@ const Navbar = () => {
             ))}
           </li>
 
+          {/* Mobile: subitems de Admin (solo si es admin) */}
+          {esAdmin && (
+            <li className={styles.mobileOnly}>
+              <span className={`${styles.mobileSection} ${styles.mobileSectionAdmin}`}>— Admin —</span>
+              {ADMIN_ITEMS.map(({ to, label }) => (
+                <NavLink key={to} to={to}
+                  className={({ isActive }) =>
+                    `${styles.navLink} ${styles.mobileSubLink} ${styles.adminBtn} ${isActive ? styles.navLinkActive : ''}`
+                  }
+                  onClick={handleNavClick}
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </li>
+          )}
+
         </ul>
 
         {/* Acciones */}

@@ -207,8 +207,25 @@
 @media (max-width: 860px) {
   .mainLayout {
     grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
   }
-  .rightCol { position: static; }
+
+  /* Con display:contents los hijos de leftCol/rightCol participan
+     directamente en el flex del mainLayout, pudiendo reordenarse */
+  .leftCol  { display: contents; }
+  .rightCol { display: contents; position: static; }
+
+  /* Cards del leftCol: Materiales, Accesorios, MDO → arriba */
+  .leftCol > .card         { order: 1; }
+  /* Desglose de costos → después de Impresora */
+  .leftCol > .resultCardWide { order: 10; }
+
+  /* Cards del rightCol: Impresora, Cliente → en medio */
+  .rightCol > .card           { order: 2; }
+  /* Precio de venta → al final */
+  .rightCol > .resultCardWide { order: 20; }
 }
 
 /* ── Cards ───────────────────────────────────── */
