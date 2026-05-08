@@ -11,19 +11,52 @@ const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemi
 /**
  * Construye el prompt del sistema con el catálogo actual de filamentos.
  */
-const buildSystemPrompt = (catalogoFilamentos = []) => {
-  const catalogo = catalogoFilamentos
+const buildSystemPrompt = (
+  catalogoFilamentos  = [],
+  catalogoAccesorios  = [],
+  catalogoImpresiones = [],
+  catalogoSTL         = []
+) => {
+  const filamentos = catalogoFilamentos
     .filter(f => (f.stock ?? 0) > 0)
     .map(f => ({
-      nombre:        f.nombre,
-      marca:         f.marca,
-      material:      f.material,
-      color:         f.color,
-      precio:        f.precio,   // ARS por kg
-      stock:         f.stock ?? 0,
+      nombre:       f.nombre,
+      marca:        f.marca,
+      material:     f.material,
+      color:        f.color,
+      precio:       f.precio,   // ARS por kg
+      stock:        f.stock ?? 0,
       tempImpresion: f.tempImpresion,
-      tempCama:      f.tempCama,
-      descripcion:   f.descripcion,
+      tempCama:     f.tempCama,
+      descripcion:  f.descripcion,
+    }))
+
+  const accesorios = catalogoAccesorios
+    .filter(a => (a.stock ?? 0) > 0)
+    .map(a => ({
+      nombre:      a.nombre,
+      categoria:   a.categoria ?? a.marca,
+      precio:      a.precio,
+      stock:       a.stock ?? 0,
+      descripcion: a.descripcion,
+    }))
+
+  const impresiones = catalogoImpresiones
+    .filter(p => (p.stock ?? 0) > 0)
+    .map(p => ({
+      nombre:      p.nombre,
+      material:    p.material,
+      color:       p.color,
+      precio:      p.precio,
+      stock:       p.stock ?? 0,
+      descripcion: p.descripcion,
+    }))
+
+  const stls = catalogoSTL
+    .map(s => ({
+      nombre:      s.nombre,
+      descripcion: s.descripcion,
+      precio:      s.precio ?? 0,
     }))
 
   return `
@@ -33,22 +66,39 @@ Tu personalidad: experto amigable, apasionado por la impresión 3D, que entiende
 
 Tus áreas de conocimiento son:
 1. Recomendación de filamentos del catálogo
-2. Análisis de imágenes de objetos/figuras para recomendar materiales de impresión
-3. Troubleshooting y solución de problemas de impresión 3D
-4. Preguntas generales sobre impresión 3D (configuración, calibración, slicers, etc.)
-5. Cálculo de costos de impresión
+2. Accesorios para impresión 3D (y también accesorios de uso doméstico/cotidiano como interiores de mates, bombillas, etc.)
+3. Productos ya impresos en 3D listos para llevar
+4. Modelos STL descargables
+5. Análisis de imágenes de objetos/figuras para recomendar materiales o productos
+6. Troubleshooting y solución de problemas de impresión 3D
+7. Preguntas generales sobre impresión 3D (configuración, calibración, slicers, etc.)
+8. Cálculo de costos de impresión
 
-CATÁLOGO DISPONIBLE (solo stock en existencia, precio en ARS por kg):
-${JSON.stringify(catalogo, null, 2)}
+═══════════════════════════════════════
+🧵 FILAMENTOS EN STOCK (precio en ARS por kg):
+${JSON.stringify(filamentos, null, 2)}
+
+═══════════════════════════════════════
+🔧 ACCESORIOS EN STOCK:
+${accesorios.length > 0 ? JSON.stringify(accesorios, null, 2) : '(sin accesorios con stock actualmente)'}
+
+═══════════════════════════════════════
+🖨️ PRODUCTOS IMPRESOS EN 3D (listos para llevar):
+${impresiones.length > 0 ? JSON.stringify(impresiones, null, 2) : '(sin impresiones disponibles actualmente)'}
+
+═══════════════════════════════════════
+📐 MODELOS STL DISPONIBLES:
+${stls.length > 0 ? JSON.stringify(stls, null, 2) : '(sin modelos STL actualmente)'}
 
 ═══════════════════════════════════════
 ANÁLISIS DE IMÁGENES (cuando te mandan una foto o imagen):
-Si el cliente manda una imagen de algo que quiere imprimir:
+Si el cliente manda una imagen de algo que quiere imprimir o un objeto que quiere conseguir:
 1. Describí brevemente lo que ves (figura, pieza, objeto)
-2. Analizá la complejidad: detalles finos, voladizos que necesiten soportes, resistencia requerida
-3. Recomendá el material ideal del catálogo con una justificación práctica
-4. Si aplica, sugerí el color más adecuado o mencioná opciones disponibles en stock
-5. Al final, invitá naturalmente a reservar: algo como "¿Querés que te lo reserve para que no se te escape?" o "Lo tengo en stock, ¿te lo agrego al carrito?"
+2. Revisá TODOS los catálogos: ¿hay un accesorio, impresión o STL que coincida?
+3. Si hay un producto en stock que coincide, mencionalo primero con nombre y precio.
+4. Si no hay producto exacto pero se puede imprimir, recomendá el material del catálogo de filamentos.
+5. Analizá complejidad: detalles finos, voladizos, resistencia requerida.
+6. Al final, invitá naturalmente a reservar o comprar.
 
 ═══════════════════════════════════════
 REGLAS PARA RECOMENDACIÓN DE FILAMENTOS:
@@ -110,31 +160,50 @@ SISTEMA DE RESERVAS:
 ═══════════════════════════════════════
 REGLAS GENERALES:
 - Respondé en español rioplatense, de forma concisa, amigable y profesional.
-- Podés responder sobre cualquier tema relacionado con impresión 3D.
-- Ante temas completamente ajenos a impresión 3D, redirigí amablemente.
+- Podés responder sobre cualquier tema relacionado con impresión 3D, accesorios y productos de la tienda.
+- Ante temas completamente ajenos a la tienda e impresión 3D, redirigí amablemente.
 - Máximo 3 recomendaciones de filamento por respuesta.
 
 
 ═══════════════════════════════════════
 ACCIONES DEL CARRITO:
-Cuando el usuario quiera agregar un filamento al carrito (frases como "agregá", "quiero comprar", "añadí al carrito", "comprá este", "lo quiero"), respondé confirmando y terminá con:
+Cuando el usuario quiera agregar un producto al carrito (frases como "agregá", "quiero comprar", "añadí al carrito", "comprá este", "lo quiero"), respondé confirmando y terminá con:
 ACCION_JSON:{"tipo":"agregar_carrito","nombre":"...","marca":"..."}
 
 Cuando el usuario quiera reservar directamente (frases como "reservalo", "reservame", "hacé la reserva", "quiero reservar"), respondé confirmando y terminá con:
 ACCION_JSON:{"tipo":"reservar","nombre":"...","marca":"..."}
 
 Solo podés agregar o reservar productos que estén en el catálogo con stock disponible. Si no hay stock, informalo.
+
+═══════════════════════════════════════
+ESTILO DE RESPUESTA (MUY IMPORTANTE):
+- Ser conciso y directo. Máximo 4-5 oraciones o bullets por respuesta.
+- Preferí bullets cortos sobre párrafos largos.
+- Sin introducciones ni cierres de relleno. Ir al grano.
+- Si la respuesta requiere más info, preguntá primero antes de dar un texto largo.
+- Nunca repitas información ya dicha en la conversación.
 `.trim()
 }
 
 /**
- * Envía un mensaje al asesor IA con contexto del catálogo.
- * @param {string}  userMessage        - Mensaje del usuario
- * @param {Array}   catalogoFilamentos - Catálogo actual
- * @param {Array}   historial          - Conversación previa
- * @param {Object}  imagen             - { base64: string, mimeType: string } opcional
+ * Envía un mensaje al asesor IA con contexto de todos los catálogos.
+ * @param {string}  userMessage         - Mensaje del usuario
+ * @param {Array}   catalogoFilamentos  - Catálogo de filamentos
+ * @param {Array}   historial           - Conversación previa
+ * @param {Object}  imagen              - { base64: string, mimeType: string } opcional
+ * @param {Array}   catalogoAccesorios  - Catálogo de accesorios
+ * @param {Array}   catalogoImpresiones - Catálogo de productos impresos
+ * @param {Array}   catalogoSTL         - Catálogo de modelos STL
  */
-export const askGemini = async (userMessage, catalogoFilamentos = [], historial = [], imagen = null) => {
+export const askGemini = async (
+  userMessage,
+  catalogoFilamentos  = [],
+  historial           = [],
+  imagen              = null,
+  catalogoAccesorios  = [],
+  catalogoImpresiones = [],
+  catalogoSTL         = []
+) => {
   if (!GEMINI_API_KEY) {
     throw new Error('Falta VITE_GEMINI_API_KEY en el archivo .env')
   }
@@ -145,10 +214,15 @@ export const askGemini = async (userMessage, catalogoFilamentos = [], historial 
       .from('chat_logs')
       .insert({ mensaje: userMessage.trim() })
       .then()   // fire-and-forget
-      .catch(() => {}) // nunca falla silenciosamente
+      .catch(() => { }) // nunca falla silenciosamente
   }
 
-  const systemPrompt = buildSystemPrompt(catalogoFilamentos)
+  const systemPrompt = buildSystemPrompt(
+    catalogoFilamentos,
+    catalogoAccesorios,
+    catalogoImpresiones,
+    catalogoSTL
+  )
 
   // Partes del mensaje del usuario (texto + imagen opcional)
   const userParts = []
@@ -156,7 +230,7 @@ export const askGemini = async (userMessage, catalogoFilamentos = [], historial 
     userParts.push({
       inlineData: {
         mimeType: imagen.mimeType || 'image/jpeg',
-        data:     imagen.base64,
+        data: imagen.base64,
       },
     })
   }
@@ -183,7 +257,7 @@ export const askGemini = async (userMessage, catalogoFilamentos = [], historial 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents,
-      generationConfig: { temperature: 0.7, maxOutputTokens: 900, topP: 0.9 },
+      generationConfig: { temperature: 0.7, maxOutputTokens: 1200, topP: 0.9 },
     }),
   })
 
@@ -196,21 +270,45 @@ export const askGemini = async (userMessage, catalogoFilamentos = [], historial 
     throw new Error(err?.error?.message || `Error HTTP ${res.status}`)
   }
 
-  const data = await res.json()
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+  const data        = await res.json()
+  const candidate   = data?.candidates?.[0]
+  let   rawText     = candidate?.content?.parts?.[0]?.text || ''
+  const finishReason = candidate?.finishReason
+
+  // Auto-continuación: si la respuesta se cortó por límite de tokens, pedimos el resto
+  if (finishReason === 'MAX_TOKENS' && rawText.length > 0) {
+    const continuationContents = [
+      ...contents,
+      { role: 'model', parts: [{ text: rawText }] },
+      { role: 'user',  parts: [{ text: 'Continuá exactamente desde donde quedaste, sin repetir nada de lo anterior.' }] },
+    ]
+    const resCont = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: continuationContents,
+        generationConfig: { temperature: 0.7, maxOutputTokens: 800, topP: 0.9 },
+      }),
+    })
+    if (resCont.ok) {
+      const dataCont   = await resCont.json()
+      const extraText  = dataCont?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+      if (extraText) rawText = rawText + extraText
+    }
+  }
 
   // Extraer recomendaciones de filamentos
   let recomendaciones = []
   const matchRec = rawText.match(/RECOMENDACIONES_JSON:(\[.*?\])/s)
   if (matchRec) {
-    try { recomendaciones = JSON.parse(matchRec[1]) } catch (_) {}
+    try { recomendaciones = JSON.parse(matchRec[1]) } catch (_) { }
   }
 
   // Extraer acción del carrito
   let accion = null
   const matchAcc = rawText.match(/ACCION_JSON:(\{.*?\})/s)
   if (matchAcc) {
-    try { accion = JSON.parse(matchAcc[1]) } catch (_) {}
+    try { accion = JSON.parse(matchAcc[1]) } catch (_) { }
   }
 
   const texto = rawText

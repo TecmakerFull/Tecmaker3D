@@ -322,14 +322,20 @@ ${filasMDO ? `<div class="section">
       costo_total:        resultado.costoTotal,
       precio_final:       resultado.precioFinal,
     }
-    const { error } = await supabase.from('cotizaciones').insert(payload)
-    setGuardando(false)
-    setModalGuardar(false)   // siempre cierra el modal
-    if (!error) {
-      setGuardadoOk(true)
-    } else {
-      console.error('Error guardando cotización:', error.message)
-      alert(`No se pudo guardar la cotización.\n${error.message}\n\nVerificá que la tabla "cotizaciones" exista en Supabase.`)
+    try {
+      const { error } = await supabase.from('cotizaciones').insert(payload)
+      if (!error) {
+        setGuardadoOk(true)
+      } else {
+        console.error('Error guardando cotización:', error.message, error.details, error.hint)
+        alert(`No se pudo guardar la cotización.\n\nError: ${error.message}${error.hint ? '\nHint: ' + error.hint : ''}`)
+      }
+    } catch (e) {
+      console.error('Excepción al guardar cotización:', e)
+      alert(`Error inesperado al guardar: ${e.message}`)
+    } finally {
+      setGuardando(false)
+      setModalGuardar(false)
     }
   }
 

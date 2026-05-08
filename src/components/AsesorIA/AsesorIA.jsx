@@ -4,7 +4,8 @@ import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import SendOutlinedIcon  from '@mui/icons-material/SendOutlined'
 import MicIcon           from '@mui/icons-material/Mic'
 import MicOffIcon        from '@mui/icons-material/MicOff'
-import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined'
+import ImageOutlinedIcon    from '@mui/icons-material/ImageOutlined'
+import CameraAltOutlinedIcon from '@mui/icons-material/CameraAltOutlined'
 import CloseIcon         from '@mui/icons-material/Close'
 import useStockStore     from '../../stores/useStockStore'
 import useCartStore      from '../../stores/useCartStore'
@@ -38,8 +39,11 @@ const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecogni
 const speechSupported   = !!SpeechRecognition
 
 const AsesorIA = () => {
-  const catalogoFilamentos = useStockStore(s => s.catalogoFilamentos)
-  const catalogoCargado    = catalogoFilamentos.length > 0
+  const catalogoFilamentos  = useStockStore(s => s.catalogoFilamentos)
+  const catalogoAccesorios  = useStockStore(s => s.catalogoAccesorios)
+  const catalogoImpresiones = useStockStore(s => s.catalogoImpresiones)
+  const catalogoSTL         = useStockStore(s => s.catalogoSTL)
+  const catalogoCargado     = catalogoFilamentos.length > 0
   const addItem            = useCartStore(s => s.addItem)
   const openCart           = useCartStore(s => s.openCart)
   const clearCart          = useCartStore(s => s.clearCart)
@@ -58,6 +62,7 @@ const AsesorIA = () => {
   const inputRef       = useRef(null)
   const recognitionRef = useRef(null)
   const fileInputRef   = useRef(null)
+  const cameraInputRef = useRef(null)
 
   // Scroll al fondo cuando llega respuesta
   useEffect(() => {
@@ -105,7 +110,10 @@ const AsesorIA = () => {
         texto,
         catalogoFilamentos,
         buildHistorial(),
-        imagenEnviar
+        imagenEnviar,
+        catalogoAccesorios,
+        catalogoImpresiones,
+        catalogoSTL
       )
       setMensajes(prev => [...prev, { role: 'model', text: respuesta, recomendaciones }])
       if (!isOpen) setHasNew(true)
@@ -382,11 +390,20 @@ const AsesorIA = () => {
           )}
 
           <div className={styles.inputArea}>
-            {/* Input oculto para archivos */}
+            {/* Input oculto — galería */}
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleImagen}
+            />
+            {/* Input oculto — cámara directa (mobile) */}
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
               style={{ display: 'none' }}
               onChange={handleImagen}
             />
@@ -410,15 +427,26 @@ const AsesorIA = () => {
               disabled={inputDisabled}
             />
 
-            {/* Botón imagen */}
+            {/* Botón galería */}
             <button
               className={`${styles.micBtn} ${imagen ? styles.micActive : ''}`}
               onClick={() => fileInputRef.current?.click()}
               disabled={inputDisabled}
-              aria-label="Adjuntar imagen del laminador"
-              title="Subir captura del laminador (Cura, PrusaSlicer, Bambu)"
+              aria-label="Adjuntar imagen desde galería"
+              title="Elegir imagen de la galería"
             >
               <ImageOutlinedIcon sx={{ fontSize: '1.1rem' }} />
+            </button>
+
+            {/* Botón cámara (especialmente útil en mobile) */}
+            <button
+              className={styles.micBtn}
+              onClick={() => cameraInputRef.current?.click()}
+              disabled={inputDisabled}
+              aria-label="Tomar foto con la cámara"
+              title="Tomar una foto ahora"
+            >
+              <CameraAltOutlinedIcon sx={{ fontSize: '1.1rem' }} />
             </button>
 
             {/* Botón micrófono */}
