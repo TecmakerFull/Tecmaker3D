@@ -89,6 +89,43 @@ const useCartStore = create(
       },
 
       /**
+       * Establece directamente la cantidad de un producto.
+       * Si el producto no está en el carrito, lo agrega con esa cantidad.
+       * @param {string|number} productId
+       * @param {number} cantidad - Cantidad deseada (ya validada contra el stock en el componente)
+       * @param {Object} [product] - Datos del producto (requerido si no está en el carrito)
+       */
+      setItemQuantity: (productId, cantidad, product) => {
+        set((state) => {
+          const existing = state.items.find((item) => item.id === productId)
+          if (existing) {
+            if (cantidad <= 0) {
+              return { items: state.items.filter((item) => item.id !== productId) }
+            }
+            return {
+              items: state.items.map((item) =>
+                item.id === productId ? { ...item, cantidad } : item
+              ),
+            }
+          }
+          if (!product || cantidad <= 0) return state
+          return {
+            items: [
+              ...state.items,
+              {
+                id:      product.id,
+                nombre:  product.nombre,
+                marca:   product.marca || product.categoria,
+                precio:  product.precio,
+                imagen:  product.imagen,
+                cantidad,
+              },
+            ],
+          }
+        })
+      },
+
+      /**
        * Vacía el carrito completamente.
        */
       clearCart: () => set({ items: [] }),

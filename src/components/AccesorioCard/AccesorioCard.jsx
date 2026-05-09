@@ -7,14 +7,21 @@ import useStockStore from '../../stores/useStockStore'
 import styles from './AccesorioCard.module.css'
 
 const AccesorioCard = ({ accesorio }) => {
-  const [added, setAdded] = useState(false)
+  const [added,    setAdded]    = useState(false)
+  const [qty,      setQty]      = useState(1)
 
-  const addItem   = useCartStore((state) => state.addItem)
-  const cartItems = useCartStore((state) => state.items)
-  const stock     = useStockStore((state) => state.stock[accesorio.id] ?? 0)
+  const addItem          = useCartStore((state) => state.addItem)
+  const setItemQuantity  = useCartStore((state) => state.setItemQuantity)
+  const cartItems        = useCartStore((state) => state.items)
+  const stock            = useStockStore((state) => state.stock[accesorio.id] ?? 0)
 
-  const enCarrito      = cartItems.find(i => i.id === accesorio.id)?.cantidad || 0
+  const enCarrito       = cartItems.find(i => i.id === accesorio.id)?.cantidad || 0
+  const stockDisponible = Math.max(0, stock - enCarrito)   // cuánto queda por agregar
+  const sinStock        = stock === 0
   const limiteAlcanzado = enCarrito >= stock
+
+  // Mantener qty dentro del rango válido cuando cambia el stock
+  const qtyValida = Math.min(qty, stockDisponible) || 1
 
   const getStockStatus = () => {
     if (stock === 0) return 'out'
@@ -33,10 +40,29 @@ const AccesorioCard = ({ accesorio }) => {
       maximumFractionDigits: 0,
     }).format(precio)
 
+  // ── Manejo del selector de cantidad ──────────────
+  const handleQtyChange = (e) => {
+    const val = parseInt(e.target.value, 10)
+    if (isNaN(val) || val < 1) { setQty(1); return }
+    setQty(Math.min(val, stockDisponible))
+  }
+
+  const handleQtyStep = (delta) => {
+    setQty((prev) => Math.max(1, Math.min(prev + delta, stockDisponible)))
+  }
+
+  // ── Agregar al carrito con la cantidad seleccionada ──
   const handleAddToCart = () => {
-    if (stock === 0 || limiteAlcanzado) return
-    addItem({ ...accesorio, marca: accesorio.categoria })
+    if (sinStock || limiteAlcanzado) return
+    const cantidadFinal = Math.min(qtyValida, stockDisponible)
+    if (cantidadFinal <= 0) return
+
+    // Si ya está en el carrito, sumamos la nueva cantidad seleccionada
+    const nuevaCantidad = enCarrito + cantidadFinal
+    setItemQuantity(accesorio.id, nuevaCantidad, { ...accesorio, marca: accesorio.categoria })
+
     setAdded(true)
+    setQty(1)
     setTimeout(() => setAdded(false), 1500)
   }
 
@@ -66,17 +92,56 @@ const AccesorioCard = ({ accesorio }) => {
 
       <CardActions className={styles.footer}>
         <Typography className={styles.precio}>{formatPrecio(accesorio.precio)}</Typography>
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={added ? <CheckIcon /> : <AddShoppingCartIcon />}
-          onClick={handleAddToCart}
-          disabled={stock === 0 || limiteAlcanzado}
-          className={`${styles.addBtn} ${(stock === 0 || limiteAlcanzado) ? styles.addBtnDisabled : ''}`}
-          id={`btn-agregar-${accesorio.id}`}
-        >
-          {added ? '¡Agregado!' : stock === 0 ? 'Sin stock' : limiteAlcanzado ? 'Máx. en carrito' : 'Agregar'}
-        </Button>
+
+        {/* Selector de cantidad + botón */}
+        <div className={styles.addRow}>
+          {!sinStock && !limiteAlcanzado && (
+            <div className={styles.qtySelector}>
+              <button
+                className={styles.qtyStep}
+                onClick={() => handleQtyStep(-1)}
+                disabled={qty <= 1}
+                aria-label="Disminuir cantidad"
+              >−</button>
+              <input
+                className={styles.qtyInput}
+                type="number"
+                min={1}
+                max={stockDisponible}
+                value={qty}
+                onChange={handleQtyChange}
+                aria-label="Cantidad"
+                id={`qty-${accesorio.id}`}
+              />
+              <button
+                className={styles.qtyStep}
+                onClick={() => handleQtyStep(1)}
+                disabled={qty >= stockDisponible}
+                aria-label="Aumentar cantidad"
+              >+</button>
+            </div>
+          )}
+
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={added ? <CheckIcon /> : <AddShoppingCartIcon />}
+            onClick={handleAddToCart}
+            disabled={sinStock || limiteAlcanzado}
+            className={`${styles.addBtn} ${(sinStock || limiteAlcanzado) ? styles.addBtnDisabled : ''}`}
+            id={`btn-agregar-${accesorio.id}`}
+          >
+            {added
+              ? '¡Agregado!'
+              : sinStock
+                ? 'Sin stock'
+                : limiteAlcanzado
+                  ? 'Máx. en carrito'
+                  : qty > 1
+                    ? `Agregar ${qty}`
+                    : 'Agregar'}
+          </Button>
+        </div>
       </CardActions>
     </Card>
   )

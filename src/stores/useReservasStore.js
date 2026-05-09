@@ -35,36 +35,69 @@ const useReservasStore = create((set, get) => ({
 
   // ── Cargar TODAS las reservas activas (para mostrar
   //    qué productos están reservados por cualquier usuario)
+  //    Agrupa por producto y suma cantidades
   cargarReservasGlobal: async () => {
     const { data, error } = await supabase
       .from('reservas')
-      .select('producto_id, usuario_id, expires_at')
+      .select('producto_id, usuario_id, expires_at, cantidad')
       .eq('estado', 'activa')
       .gt('expires_at', new Date().toISOString())
 
     if (error) return
+    // Suma las cantidades de todas las reservas activas por producto
     const mapa = {}
-    data.forEach((r) => { mapa[r.producto_id] = r })
+    data.forEach((r) => {
+      if (mapa[r.producto_id]) {
+        mapa[r.producto_id].cantidad += r.cantidad
+      } else {
+        mapa[r.producto_id] = { ...r }
+      }
+    })
     set({ reservasGlobal: mapa })
   },
 
   reservasGlobal: {}, // { productoId: { usuario_id, expires_at } }
 
   // ── Crear reserva ──────────────────────────────────
-  crearReserva: async (productoId) => {
+  // cantidad: número de unidades a reservar (default 1)
+  crearReserva: async (productoId, cantidad = 1) => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return { error: 'Sin sesión' }
 
-    // Verificar que no haya reserva activa para ese producto
+    // Verificar que no haya reserva activa del mismo usuario para ese producto.
+    // Si ya existe, la actualizamos con la nueva cantidad en vez de crear duplicados.
     const { data: existente } = await supabase
       .from('reservas')
       .select('id')
       .eq('producto_id', productoId)
+      .eq('usuario_id', session.user.id)
       .eq('estado', 'activa')
       .gt('expires_at', new Date().toISOString())
       .maybeSingle()
 
-    if (existente) return { error: 'El producto ya está reservado' }
+    if (existente) {
+      // Actualizar cantidad y renovar el tiempo de expiración
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+      const { data: updated, error: errUpd } = await supabase
+        .from('reservas')
+        .update({ cantidad, expires_at: expiresAt })
+        .eq('id', existente.id)
+        .select()
+        .single()
+
+      if (errUpd) return { error: errUpd }
+
+      set((state) => ({
+        reservas:        state.reservas.map((r) => r.id === updated.id ? updated : r),
+        reservasActivas: { ...state.reservasActivas, [productoId]: updated },
+        reservasGlobal:  {
+          ...state.reservasGlobal,
+          [productoId]: { ...state.reservasGlobal[productoId], cantidad: updated.cantidad },
+        },
+      }))
+
+      return { data: updated, error: null }
+    }
 
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
 
@@ -73,7 +106,7 @@ const useReservasStore = create((set, get) => ({
       .insert({
         usuario_id:  session.user.id,
         producto_id: productoId,
-        cantidad:    1,
+        cantidad,
         expires_at:  expiresAt,
         estado:      'activa',
       })
@@ -86,7 +119,10 @@ const useReservasStore = create((set, get) => ({
     set((state) => ({
       reservas: [data, ...state.reservas],
       reservasActivas: { ...state.reservasActivas, [productoId]: data },
-      reservasGlobal:  { ...state.reservasGlobal,  [productoId]: data },
+      reservasGlobal:  {
+        ...state.reservasGlobal,
+        [productoId]: { ...data, cantidad },
+      },
     }))
 
     return { data, error: null }

@@ -152,6 +152,73 @@
   justify-content: space-between;
   border-top: 1px solid #f1f5f9 !important;
   background: #fafafa !important;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ── Selector de cantidad ─────────────────────── */
+.addRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.qtySelector {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 32px;
+}
+
+.qtyStep {
+  background: transparent;
+  border: none;
+  color: #d97706;
+  font-size: 1rem;
+  font-weight: 700;
+  width: 26px;
+  height: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.qtyStep:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.qtyStep:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.qtyInput {
+  width: 36px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: 'Poppins', sans-serif;
+  padding: 0;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.qtyInput::-webkit-inner-spin-button,
+.qtyInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .precio {

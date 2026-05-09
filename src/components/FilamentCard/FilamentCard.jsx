@@ -8,15 +8,17 @@ import useReservasStore from '../../stores/useReservasStore'
 import styles from './FilamentCard.module.css'
 
 const FilamentCard = ({ filamento }) => {
-  const [added, setAdded] = useState(false)
+  const [added,    setAdded]    = useState(false)
   const [countdown, setCountdown] = useState('')
+  const [qty,      setQty]      = useState(1)
 
-  const addItem        = useCartStore((state) => state.addItem)
-  const cartItems      = useCartStore((state) => state.items)
-  const stock          = useStockStore((state) => state.stock[filamento.id] ?? 0)
-  const reservasGlobal = useReservasStore((s) => s.reservasGlobal)
+  const addItem         = useCartStore((state) => state.addItem)
+  const setItemQuantity = useCartStore((state) => state.setItemQuantity)
+  const cartItems       = useCartStore((state) => state.items)
+  const stock           = useStockStore((state) => state.stock[filamento.id] ?? 0)
+  const reservasGlobal  = useReservasStore((s) => s.reservasGlobal)
 
-  const reserva = reservasGlobal[filamento.id]
+  const reserva       = reservasGlobal[filamento.id]
   const estaReservado = !!reserva && new Date(reserva.expires_at) > new Date()
 
   // Countdown timer para productos reservados
@@ -33,27 +35,28 @@ const FilamentCard = ({ filamento }) => {
     return () => clearInterval(id)
   }, [estaReservado, reserva])
 
-  // Los datos (precio, descripcion, imagen, etc.) vienen directamente de Supabase
-  // a través del prop 'filamento' — sin merge, sin fallback al .js
-
   // Cuántas unidades ya tiene el usuario en el carrito
   const enCarrito = cartItems.find(i => i.id === filamento.id)?.cantidad || 0
 
-  const stockDisponible = estaReservado
+  const stockBase       = estaReservado
     ? Math.max(0, stock - (reserva?.cantidad || 1))
     : stock
+  const stockDisponible = Math.max(0, stockBase - enCarrito)  // cuánto queda por agregar
+
+  const sinStock        = stockBase === 0
+  const limiteAlcanzado = enCarrito >= stockBase
 
   const getStockStatus = () => {
-    if (estaReservado && stockDisponible === 0) return 'reservado'
-    if (stockDisponible === 0) return 'out'
-    if (stockDisponible <= 3)  return 'low'
+    if (estaReservado && stockBase === 0) return 'reservado'
+    if (stockBase === 0) return 'out'
+    if (stockBase <= 3)  return 'low'
     return 'in'
   }
 
   const stockStatus = getStockStatus()
   const stockLabels = {
-    in:       `Stock: ${stockDisponible}`,
-    low:      `¡Últimas ${stockDisponible}!`,
+    in:       `Stock: ${stockBase}`,
+    low:      `¡Últimas ${stockBase}!`,
     out:      'Sin stock',
     reservado: `🔒 Reservado · ${countdown}`,
   }
@@ -71,15 +74,32 @@ const FilamentCard = ({ filamento }) => {
       maximumFractionDigits: 0,
     }).format(precio)
 
-  // No se puede agregar más de lo que hay en stock
-  const limiteAlcanzado = enCarrito >= stockDisponible
+  // ── Manejo del selector de cantidad ──────────────
+  const handleQtyChange = (e) => {
+    const val = parseInt(e.target.value, 10)
+    if (isNaN(val) || val < 1) { setQty(1); return }
+    setQty(Math.min(val, stockDisponible))
+  }
 
+  const handleQtyStep = (delta) => {
+    setQty((prev) => Math.max(1, Math.min(prev + delta, stockDisponible)))
+  }
+
+  // ── Agregar al carrito con la cantidad seleccionada ──
   const handleAddToCart = () => {
-    if (stockDisponible === 0 || estaReservado || limiteAlcanzado) return
-    addItem({ ...filamento })
+    if (sinStock || estaReservado || limiteAlcanzado) return
+    const cantidadFinal = Math.min(qty, stockDisponible)
+    if (cantidadFinal <= 0) return
+
+    const nuevaCantidad = enCarrito + cantidadFinal
+    setItemQuantity(filamento.id, nuevaCantidad, { ...filamento })
+
     setAdded(true)
+    setQty(1)
     setTimeout(() => setAdded(false), 1500)
   }
+
+  const puedeAgregar = !sinStock && !estaReservado && !limiteAlcanzado
 
   return (
     <Card className={styles.card} elevation={0}>
@@ -119,17 +139,55 @@ const FilamentCard = ({ filamento }) => {
           {formatPrecio(filamento.precio)}
         </Typography>
 
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={added ? <CheckIcon /> : <AddShoppingCartIcon />}
-          onClick={handleAddToCart}
-          disabled={stockDisponible === 0 || estaReservado || limiteAlcanzado}
-          className={`${styles.addBtn} ${(stockDisponible === 0 || estaReservado || limiteAlcanzado) ? styles.addBtnDisabled : ''} ${added ? styles.addedAnim : ''}`}
-          id={`btn-agregar-${filamento.id}`}
-        >
-          {added ? '¡Agregado!' : estaReservado ? '🔒 Reservado' : (stockDisponible === 0 || limiteAlcanzado) ? 'Máx. en carrito' : 'Agregar'}
-        </Button>
+        {/* Selector de cantidad + botón */}
+        <div className={styles.addRow}>
+          {puedeAgregar && (
+            <div className={styles.qtySelector}>
+              <button
+                className={styles.qtyStep}
+                onClick={() => handleQtyStep(-1)}
+                disabled={qty <= 1}
+                aria-label="Disminuir cantidad"
+              >−</button>
+              <input
+                className={styles.qtyInput}
+                type="number"
+                min={1}
+                max={stockDisponible}
+                value={qty}
+                onChange={handleQtyChange}
+                aria-label="Cantidad"
+                id={`qty-${filamento.id}`}
+              />
+              <button
+                className={styles.qtyStep}
+                onClick={() => handleQtyStep(1)}
+                disabled={qty >= stockDisponible}
+                aria-label="Aumentar cantidad"
+              >+</button>
+            </div>
+          )}
+
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={added ? <CheckIcon /> : <AddShoppingCartIcon />}
+            onClick={handleAddToCart}
+            disabled={!puedeAgregar}
+            className={`${styles.addBtn} ${!puedeAgregar ? styles.addBtnDisabled : ''} ${added ? styles.addedAnim : ''}`}
+            id={`btn-agregar-${filamento.id}`}
+          >
+            {added
+              ? '¡Agregado!'
+              : estaReservado
+                ? '🔒 Reservado'
+                : (sinStock || limiteAlcanzado)
+                  ? 'Máx. en carrito'
+                  : qty > 1
+                    ? `Agregar ${qty}`
+                    : 'Agregar'}
+          </Button>
+        </div>
       </CardActions>
     </Card>
   )

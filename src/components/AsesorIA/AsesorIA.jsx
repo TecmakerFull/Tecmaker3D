@@ -389,25 +389,25 @@ const AsesorIA = () => {
             </div>
           )}
 
-          <div className={styles.inputArea}>
-            {/* Input oculto — galería */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={handleImagen}
-            />
-            {/* Input oculto — cámara directa (mobile) */}
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              style={{ display: 'none' }}
-              onChange={handleImagen}
-            />
+          {/* Inputs ocultos — archivos */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleImagen}
+          />
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            style={{ display: 'none' }}
+            onChange={handleImagen}
+          />
 
+          {/* Fila superior: textarea + botón enviar */}
+          <div className={styles.textareaRow}>
             <textarea
               ref={inputRef}
               className={styles.textarea}
@@ -417,7 +417,7 @@ const AsesorIA = () => {
                   : escuchando
                   ? '🎙️ Escuchando...'
                   : imagen
-                  ? 'Agregá un comentario o enviá la imagen directamente...'
+                  ? 'Agregá un comentario o enviá la imagen...'
                   : 'Consultá sobre filamentos, problemas o costos...'
               }
               value={input}
@@ -426,45 +426,6 @@ const AsesorIA = () => {
               rows={2}
               disabled={inputDisabled}
             />
-
-            {/* Botón galería */}
-            <button
-              className={`${styles.micBtn} ${imagen ? styles.micActive : ''}`}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={inputDisabled}
-              aria-label="Adjuntar imagen desde galería"
-              title="Elegir imagen de la galería"
-            >
-              <ImageOutlinedIcon sx={{ fontSize: '1.1rem' }} />
-            </button>
-
-            {/* Botón cámara (especialmente útil en mobile) */}
-            <button
-              className={styles.micBtn}
-              onClick={() => cameraInputRef.current?.click()}
-              disabled={inputDisabled}
-              aria-label="Tomar foto con la cámara"
-              title="Tomar una foto ahora"
-            >
-              <CameraAltOutlinedIcon sx={{ fontSize: '1.1rem' }} />
-            </button>
-
-            {/* Botón micrófono */}
-            {speechSupported && (
-              <button
-                className={`${styles.micBtn} ${escuchando ? styles.micActive : ''}`}
-                onClick={toggleVoz}
-                disabled={inputDisabled}
-                aria-label={escuchando ? 'Detener grabación' : 'Hablar'}
-                title={escuchando ? 'Detener' : 'Hablar con el asesor'}
-              >
-                {escuchando
-                  ? <MicOffIcon sx={{ fontSize: '1.1rem' }} />
-                  : <MicIcon    sx={{ fontSize: '1.1rem' }} />
-                }
-              </button>
-            )}
-
             <button
               className={styles.sendBtn}
               onClick={() => enviar()}
@@ -473,6 +434,50 @@ const AsesorIA = () => {
             >
               <SendOutlinedIcon sx={{ fontSize: '1.1rem' }} />
             </button>
+          </div>
+
+          {/* Fila inferior: barra de herramientas sutil */}
+          <div className={styles.toolbar}>
+            <div className={styles.toolbarLeft}>
+              {/* Botón galería */}
+              <button
+                className={`${styles.toolBtn} ${imagen ? styles.toolBtnActive : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={inputDisabled}
+                aria-label="Adjuntar imagen desde galería"
+                title="Elegir imagen de la galería"
+              >
+                <ImageOutlinedIcon sx={{ fontSize: '1rem' }} />
+              </button>
+
+              {/* Botón cámara */}
+              <button
+                className={styles.toolBtn}
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={inputDisabled}
+                aria-label="Tomar foto con la cámara"
+                title="Tomar una foto ahora"
+              >
+                <CameraAltOutlinedIcon sx={{ fontSize: '1rem' }} />
+              </button>
+
+              {/* Botón micrófono */}
+              {speechSupported && (
+                <button
+                  className={`${styles.toolBtn} ${escuchando ? styles.toolBtnMicActive : ''}`}
+                  onClick={toggleVoz}
+                  disabled={inputDisabled}
+                  aria-label={escuchando ? 'Detener grabación' : 'Hablar'}
+                  title={escuchando ? 'Detener' : 'Hablar con el asesor'}
+                >
+                  {escuchando
+                    ? <MicOffIcon sx={{ fontSize: '1rem' }} />
+                    : <MicIcon    sx={{ fontSize: '1rem' }} />
+                  }
+                </button>
+              )}
+            </div>
+            <span className={styles.toolbarHint}>Enter para enviar · Shift+Enter nueva línea</span>
           </div>
         </div>
 

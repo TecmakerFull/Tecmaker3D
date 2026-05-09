@@ -12,55 +12,55 @@ const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemi
  * Construye el prompt del sistema con el catálogo actual de filamentos.
  */
 const buildSystemPrompt = (
-  catalogoFilamentos  = [],
-  catalogoAccesorios  = [],
+  catalogoFilamentos = [],
+  catalogoAccesorios = [],
   catalogoImpresiones = [],
-  catalogoSTL         = []
+  catalogoSTL = []
 ) => {
   const filamentos = catalogoFilamentos
     .filter(f => (f.stock ?? 0) > 0)
     .map(f => ({
-      nombre:       f.nombre,
-      marca:        f.marca,
-      material:     f.material,
-      color:        f.color,
-      precio:       f.precio,   // ARS por kg
-      stock:        f.stock ?? 0,
+      nombre: f.nombre,
+      marca: f.marca,
+      material: f.material,
+      color: f.color,
+      precio: f.precio,   // ARS por kg
+      stock: f.stock ?? 0,
       tempImpresion: f.tempImpresion,
-      tempCama:     f.tempCama,
-      descripcion:  f.descripcion,
+      tempCama: f.tempCama,
+      descripcion: f.descripcion,
     }))
 
   const accesorios = catalogoAccesorios
     .filter(a => (a.stock ?? 0) > 0)
     .map(a => ({
-      nombre:      a.nombre,
-      categoria:   a.categoria ?? a.marca,
-      precio:      a.precio,
-      stock:       a.stock ?? 0,
+      nombre: a.nombre,
+      categoria: a.categoria ?? a.marca,
+      precio: a.precio,
+      stock: a.stock ?? 0,
       descripcion: a.descripcion,
     }))
 
   const impresiones = catalogoImpresiones
     .filter(p => (p.stock ?? 0) > 0)
     .map(p => ({
-      nombre:      p.nombre,
-      material:    p.material,
-      color:       p.color,
-      precio:      p.precio,
-      stock:       p.stock ?? 0,
+      nombre: p.nombre,
+      material: p.material,
+      color: p.color,
+      precio: p.precio,
+      stock: p.stock ?? 0,
       descripcion: p.descripcion,
     }))
 
   const stls = catalogoSTL
     .map(s => ({
-      nombre:      s.nombre,
+      nombre: s.nombre,
       descripcion: s.descripcion,
-      precio:      s.precio ?? 0,
+      precio: s.precio ?? 0,
     }))
 
   return `
-Sos Tecko, el asesor experto en impresión 3D de TecMaker 3D, una tienda argentina de filamentos e impresión 3D en Rosario, Santa Fe.
+Tu nombre es "Tecko". Sos el asesor experto en impresión 3D de TecMaker 3D, una tienda argentina de filamentos e impresión 3D en Rosario, Santa Fe.
 
 Tu personalidad: experto amigable, apasionado por la impresión 3D, que entiende lo que el cliente quiere hacer y lo ayuda a concretarlo. Sos consultivo, no invasivo. Tu objetivo es que el cliente encuentre exactamente lo que necesita y se vaya con ganas de comprar — porque lo convenciste con conocimiento, no con presión.
 
@@ -113,14 +113,58 @@ Cuando recomendés filamento, terminá con: RECOMENDACIONES_JSON:[{"nombre":"...
 
 ═══════════════════════════════════════
 REGLAS PARA CÁLCULO DE COSTOS:
-Usá estas fórmulas para calcular el costo de una impresión:
-- Costo filamento = (gramos_usados / 1000) × precio_por_kg_ARS
-- Costo electricidad = horas_impresión × 0.2 (kW consumo promedio impresora) × costo_kwh_ARS
-- Costo kWh en Argentina: usar ~$150 ARS/kWh como referencia (preguntarle al cliente si quiere personalizar)
-- Costo total sugerido = (costo_filamento + costo_electricidad) × factor_ganancia
-- Factor ganancia recomendado: 2.5x a 3x para servicio de impresión
-Siempre mostrá el desglose detallado del cálculo.
-Si el cliente pregunta el precio de un filamento específico y está en el catálogo, usá ese precio exacto.
+Usá exactamente estas fórmulas (son las mismas que la Calculadora del sitio):
+
+VARIABLES CON VALORES POR DEFECTO (Bambu Lab A1):
+  · Impresora: Bambu Lab A1
+  · Consumo: 230 W
+  · Desgaste/amortización: $320/h
+  · Tarifa eléctrica: $384/kWh (EPE Rosario residencial con impuestos)
+  · Margen de ganancia sugerido: 40% sobre el costo total
+
+FÓRMULAS:
+  · Costo material    = (gramos / 1000) × precio_filamento_por_kg
+  · Costo eléctrico   = (consumo_W / 1000) × horas_impresión × tarifa_kWh
+  · Costo desgaste    = desgaste_$/h × horas_impresión
+  · Costo accesorios  = suma de (precio_unitario × cantidad) por cada insumo
+  · Costo MDO         = suma de (horas_tarea × tarifa_$/h) por cada tarea
+  · Costo total       = material + eléctrico + desgaste + accesorios + MDO
+  · Precio sugerido   = costo_total × (1 + margen/100)
+    → con 40%: precio = costo_total × 1.40
+    → con 40% de margen la ganancia es: precio - costo = 40% del costo total
+
+NOTA SOBRE EL MARGEN:
+  · 40% de margen significa: si el costo es $1.000, el precio es $1.400 (ganancia $400).
+  · Es ganancia sobre el costo, no sobre el precio de venta.
+
+CÓMO CALCULAR CUANDO EL USUARIO PIDE UNA COTIZACIÓN:
+1. Pedí solo lo que no sabés: material + gramos + tiempo de impresión.
+2. Usá los defaults para todo lo demás (Bambu A1, $384/kWh, desgaste $320/h, sin MDO ni accesorios a menos que los mencione).
+3. Mostrá el resultado en este formato compacto:
+   ─────────────────────────
+   🧮 COTIZACIÓN ESTIMADA
+   · Material:     $XXX  (XXg de [nombre] a $X.XXX/kg)
+   · Electricidad: $XXX  (Xh a 230W · $384/kWh)
+   · Desgaste:     $XXX  (Xh · $320/h — Bambu A1)
+   · Costo total:  $XXX
+   · Precio (40%): $XXX
+   ─────────────────────────
+4. Después preguntá en UNA sola línea:
+   "¿Cambiamos la impresora, tarifa eléctrica, margen o agregamos MDO/accesorios?"
+
+Si el cliente da el nombre de una impresora del listado, usá estos valores:
+  · Ender 3:        150W · $120/h
+  · Ender 3 Pro/V2: 165W · $135/h
+  · Ender 3 S1:     200W · $180/h
+  · Bambu A1:       230W · $320/h  ← default
+  · Bambu A1 Mini:  220W · $350/h
+  · Bambu P1S:      350W · $600/h
+  · Prusa MK4:      180W · $400/h
+  · Anycubic Kobra: 170W · $150/h
+  · CR-10:          320W · $160/h
+  · Neptune 4:      165W · $140/h
+
+Siempre mostrá el desglose. Si el cliente pregunta el precio de un filamento del catálogo, usá ese precio exacto.
 
 ═══════════════════════════════════════
 REGLAS PARA TROUBLESHOOTING:
@@ -197,12 +241,12 @@ ESTILO DE RESPUESTA (MUY IMPORTANTE):
  */
 export const askGemini = async (
   userMessage,
-  catalogoFilamentos  = [],
-  historial           = [],
-  imagen              = null,
-  catalogoAccesorios  = [],
+  catalogoFilamentos = [],
+  historial = [],
+  imagen = null,
+  catalogoAccesorios = [],
   catalogoImpresiones = [],
-  catalogoSTL         = []
+  catalogoSTL = []
 ) => {
   if (!GEMINI_API_KEY) {
     throw new Error('Falta VITE_GEMINI_API_KEY en el archivo .env')
@@ -270,9 +314,9 @@ export const askGemini = async (
     throw new Error(err?.error?.message || `Error HTTP ${res.status}`)
   }
 
-  const data        = await res.json()
-  const candidate   = data?.candidates?.[0]
-  let   rawText     = candidate?.content?.parts?.[0]?.text || ''
+  const data = await res.json()
+  const candidate = data?.candidates?.[0]
+  let rawText = candidate?.content?.parts?.[0]?.text || ''
   const finishReason = candidate?.finishReason
 
   // Auto-continuación: si la respuesta se cortó por límite de tokens, pedimos el resto
@@ -280,7 +324,7 @@ export const askGemini = async (
     const continuationContents = [
       ...contents,
       { role: 'model', parts: [{ text: rawText }] },
-      { role: 'user',  parts: [{ text: 'Continuá exactamente desde donde quedaste, sin repetir nada de lo anterior.' }] },
+      { role: 'user', parts: [{ text: 'Continuá exactamente desde donde quedaste, sin repetir nada de lo anterior.' }] },
     ]
     const resCont = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -291,8 +335,8 @@ export const askGemini = async (
       }),
     })
     if (resCont.ok) {
-      const dataCont   = await resCont.json()
-      const extraText  = dataCont?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+      const dataCont = await resCont.json()
+      const extraText = dataCont?.candidates?.[0]?.content?.parts?.[0]?.text || ''
       if (extraText) rawText = rawText + extraText
     }
   }

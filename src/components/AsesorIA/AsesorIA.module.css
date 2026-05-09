@@ -370,6 +370,14 @@
   align-items: flex-end;
 }
 
+/* Fila del textarea — full width con send embebido */
+.textareaRow {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.75rem 0.75rem 0.4rem;
+  align-items: flex-end;
+}
+
 
 .textarea {
   flex: 1;
@@ -384,12 +392,66 @@
   outline: none;
   line-height: 1.5;
   transition: border-color 0.2s;
-  max-height: 80px;
+  max-height: 90px;
   overflow-y: auto;
+  width: 100%;
 }
 .textarea:focus { border-color: rgba(245,158,11,0.4); }
 .textarea::placeholder { color: #475569; }
 .textarea:disabled { opacity: 0.5; }
+
+/* Barra de herramientas inferior */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.75rem 0.65rem;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.toolbarHint {
+  font-size: 0.62rem;
+  color: #334155;
+  font-family: 'Poppins', sans-serif;
+  user-select: none;
+}
+
+/* Botones de herramienta — compactos y discretos */
+.toolBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+.toolBtn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.07);
+  color: #94a3b8;
+}
+.toolBtn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.toolBtnActive {
+  color: #f59e0b;
+  background: rgba(245,158,11,0.1) !important;
+}
+
+.toolBtnMicActive {
+  color: #f87171;
+  background: rgba(239,68,68,0.12) !important;
+  animation: micPulse 1s ease-in-out infinite;
+}
 
 .sendBtn {
   width: 38px;
