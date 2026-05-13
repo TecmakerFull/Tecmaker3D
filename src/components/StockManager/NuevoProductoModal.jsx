@@ -148,7 +148,7 @@ const NuevoProductoModal = ({ onClose, onSuccess }) => {
   }
 
   return (
-    <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && handleClose()}>
+    <div className={styles.overlay}>
       <div className={styles.modal} role="dialog" aria-modal="true">
 
         {/* Header */}

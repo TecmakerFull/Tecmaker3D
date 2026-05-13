@@ -1,7 +1,15 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Typography, Button, CircularProgress } from '@mui/material'
-import AddIcon                from '@mui/icons-material/Add'
-import DownloadOutlinedIcon   from '@mui/icons-material/DownloadOutlined'
+import AddIcon                      from '@mui/icons-material/Add'
+import DownloadOutlinedIcon         from '@mui/icons-material/DownloadOutlined'
+import LockOutlinedIcon             from '@mui/icons-material/LockOutlined'
+import InventoryOutlinedIcon        from '@mui/icons-material/InventoryOutlined'
+import WarningAmberOutlinedIcon     from '@mui/icons-material/WarningAmberOutlined'
+import FilterAltOutlinedIcon        from '@mui/icons-material/FilterAltOutlined'
+import LayersOutlinedIcon           from '@mui/icons-material/LayersOutlined'
+import SettingsOutlinedIcon         from '@mui/icons-material/SettingsOutlined'
+import PrintOutlinedIcon            from '@mui/icons-material/PrintOutlined'
+import SearchOutlinedIcon           from '@mui/icons-material/SearchOutlined'
 import { supabase } from '../../lib/supabase'
 import useStockStore from '../../stores/useStockStore'
 import NuevoProductoModal from './NuevoProductoModal'
@@ -265,7 +273,7 @@ tr:nth-child(even) td{background:#f8fafc}
     return (
       <div className={styles.loginWrapper}>
         <div className={styles.loginCard}>
-          <div className={styles.loginIcon}>🔒</div>
+          <div className={styles.loginIcon}><LockOutlinedIcon sx={{ fontSize: '2.5rem', color: '#f59e0b' }} /></div>
           <Typography className={styles.loginTitle}>Acceso Restringido</Typography>
           <Typography className={styles.loginSubtitle}>
             Panel de administración · TecMaker 3D
@@ -288,7 +296,7 @@ tr:nth-child(even) td{background:#f8fafc}
               onChange={(e) => { setPassword(e.target.value); setLoginError('') }}
               id="input-admin-password"
             />
-            {loginError && <span className={styles.loginError}>⚠️ {loginError}</span>}
+            {loginError && <span className={styles.loginError}><WarningAmberOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} />{loginError}</span>}
             <Button
               type="submit"
               className={styles.loginBtn}
@@ -307,13 +315,13 @@ tr:nth-child(even) td{background:#f8fafc}
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <div className={styles.headerBadge}>📦 PANEL ADMINISTRADOR</div>
+        <div className={styles.headerBadge}><InventoryOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.4 }} /> PANEL ADMINISTRADOR</div>
         <Typography component="h1" className={styles.title}>Gestión de Stock</Typography>
         <Typography className={styles.subtitle}>
           {session.user.email} · Stock sincronizado con Supabase
         </Typography>
         <button className={styles.logoutBtn} onClick={handleLogout} id="btn-cerrar-sesion">
-          🔒 Cerrar sesión
+          <LockOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.4 }} /> Cerrar sesión
         </button>
       </div>
 
@@ -325,7 +333,7 @@ tr:nth-child(even) td{background:#f8fafc}
       )}
       {error && (
         <div className={styles.errorBanner}>
-          ⚠️ Error: {error}
+          <WarningAmberOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.3 }} /> Error: {error}
           <button onClick={cargarStock} className={styles.retrySmall}>Reintentar</button>
         </div>
       )}
@@ -363,15 +371,15 @@ tr:nth-child(even) td{background:#f8fafc}
             <div className={styles.tabs}>
               <button className={`${styles.tab} ${tab === 'filamentos' ? styles.tabActive : ''}`}
                 onClick={() => setTab('filamentos')} id="tab-filamentos">
-                🧵 Filamentos ({catalogoFilamentos.length})
+                <LayersOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.4 }} /> Filamentos ({catalogoFilamentos.length})
               </button>
               <button className={`${styles.tab} ${tab === 'accesorios' ? styles.tabActive : ''}`}
                 onClick={() => setTab('accesorios')} id="tab-accesorios">
-                ⚙️ Accesorios ({catalogoAccesorios.length})
+                <SettingsOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.4 }} /> Accesorios ({catalogoAccesorios.length})
               </button>
               <button className={`${styles.tab} ${tab === 'impresiones' ? styles.tabActive : ''}`}
                 onClick={() => setTab('impresiones')} id="tab-impresiones">
-                🖨️ Impresiones ({catalogoImpresiones.length})
+                <PrintOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mr: 0.4 }} /> Impresiones ({catalogoImpresiones.length})
               </button>
             </div>
             <div className={styles.tabsActions}>
@@ -398,7 +406,7 @@ tr:nth-child(even) td{background:#f8fafc}
             <div className={styles.tableSearch}>
               <input
                 type="text"
-                placeholder="🔍 Buscar por nombre o marca..."
+                placeholder="Buscar por nombre o marca..."
                 className={styles.tableSearchInput}
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}

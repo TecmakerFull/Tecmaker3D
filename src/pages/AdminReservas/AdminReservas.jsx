@@ -19,7 +19,10 @@ const AdminReservas = () => {
   const [countdowns, setCountdowns] = useState({})
 
   useEffect(() => {
-    if (!esAdmin) return
+    if (!esAdmin) {
+      setCargando(false)
+      return
+    }
     cargarReservas()
   }, [esAdmin])
 
@@ -42,26 +45,30 @@ const AdminReservas = () => {
 
   const cargarReservas = async () => {
     setCargando(true)
-    const { data } = await supabase
-      .from('reservas')
-      .select('*, productos(nombre, imagen, marca, precio)')
-      .eq('estado', 'activa')
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
+    try {
+      const { data } = await supabase
+        .from('reservas')
+        .select('*, productos(nombre, imagen, marca, precio)')
+        .eq('estado', 'activa')
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
 
-    if (data?.length) {
-      const uids = [...new Set(data.map((r) => r.usuario_id))]
-      const { data: perfs } = await supabase
-        .from('perfiles')
-        .select('id, nombre, email, telefono')
-        .in('id', uids)
-      const mapa = {}
-      perfs?.forEach((p) => { mapa[p.id] = p })
-      setUsuarios(mapa)
+      if (data?.length) {
+        const uids = [...new Set(data.map((r) => r.usuario_id))]
+        const { data: perfs } = await supabase
+          .from('perfiles')
+          .select('id, nombre, email, telefono')
+          .in('id', uids)
+        const mapa = {}
+        perfs?.forEach((p) => { mapa[p.id] = p })
+        setUsuarios(mapa)
+      }
+      setReservas(data || [])
+    } catch (e) {
+      console.error('Error cargando reservas:', e)
+    } finally {
+      setCargando(false)
     }
-
-    setReservas(data || [])
-    setCargando(false)
   }
 
   const handleConfirmar = async (reservaId) => {

@@ -318,10 +318,31 @@
 }
 
 .mobileSubLink {
-  padding-left: 1.5rem !important;
+  padding-left: 1.75rem !important;
   font-size: 0.85rem !important;
 }
 
 .mobileSectionAdmin {
   color: #fca5a5;
+}
+
+/* Acordeón mobile: lista de sub-ítems */
+.mobileSubList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  border-left: 2px solid rgba(245,158,11,0.2);
+  margin-left: 1rem;
+  padding-left: 0.25rem;
+  animation: dropIn 0.15s ease;
+}
+
+/* Centrar Tienda / Admin igual que Inicio, Calculadora y Contacto */
+.mobileOnly .dropdownBtn {
+  justify-content: center;
+  text-align: center;
+  width: 100%;
 }

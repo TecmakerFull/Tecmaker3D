@@ -37,10 +37,29 @@
 
 .headerRight {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.5rem;
   flex: 1;
   flex-wrap: wrap;
+}
+
+/* Grupo input + label en el header */
+.headerInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 160px;
+}
+
+.headerInputLabel {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Poppins', sans-serif;
+  padding-left: 0.25rem;
 }
 
 .nombreInput {
@@ -187,7 +206,7 @@
   max-width: 1200px;
   margin: 0.75rem auto 0;
   padding: 0 1.25rem;
-  align-items: start;
+  align-items: end;
 }
 
 .leftCol {
@@ -210,6 +229,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    align-items: stretch;
   }
 
   /* Con display:contents los hijos de leftCol/rightCol participan
@@ -222,10 +242,97 @@
   /* Desglose de costos → después de Impresora */
   .leftCol > .resultCardWide { order: 10; }
 
-  /* Cards del rightCol: Impresora, Cliente → en medio */
+  /* Cards del rightCol: Impresora → en medio */
   .rightCol > .card           { order: 2; }
   /* Precio de venta → al final */
   .rightCol > .resultCardWide { order: 20; }
+
+  /* Header: oculta el título y apila los inputs */
+  .headerLeft { display: none; }
+  .header {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+  .headerRight {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+    width: 100%;
+  }
+  .headerInputGroup {
+    width: 100%;
+    min-width: 0;
+  }
+  .nombreInput { min-width: 0; width: 100%; }
+  .btnReset    { width: 100%; }
+}
+
+/* ── Mobile compacto (≤ 600px) ── ajustes internos de cards ── */
+@media (max-width: 600px) {
+  /* Cards: menos padding lateral */
+  .card {
+    padding: 0.75rem 0.7rem 0.6rem;
+  }
+
+  /* mainLayout sin padding extra */
+  .mainLayout { padding: 0 0.75rem; }
+
+  /* Headers de columna: ocultar en mobile (no caben) */
+  .colHeaders { display: none; }
+
+  /* Fila de material/accesorio: apilar selector arriba, precio+cantidad abajo */
+  .compactRow {
+    flex-wrap: wrap;
+    padding: 0.5rem 0.5rem;
+  }
+  .compactRow .ssWrap  { flex: 1 1 100%; order: 1; min-width: 0; }
+  .compactRow .select  { flex: 1 1 100%; order: 1; }
+  /* Precio y cantidad juntos en segunda línea */
+  .compactRow .inputGroup:nth-child(3),
+  .compactRow .inputGroup:nth-child(4) { flex: 1; min-width: 70px; order: 2; }
+  .compactRow .btnRemove { order: 3; margin-left: auto; }
+
+  /* materialGrid igual */
+  .materialGrid {
+    flex-wrap: wrap;
+  }
+  .materialGrid .inputGroup:nth-child(3),
+  .materialGrid .inputGroup:nth-child(4) { flex: 1; min-width: 70px; width: auto; }
+
+  /* Mano de Obra: simplificar grilla */
+  .mdoHeader {
+    grid-template-columns: 22px 1fr 44px 60px 70px 24px;
+    gap: 0.25rem;
+    font-size: 0.55rem;
+  }
+  .mdoRow {
+    grid-template-columns: 22px 1fr 44px 60px 70px 24px;
+    gap: 0.25rem;
+    padding: 0.35rem 0.3rem;
+  }
+
+  /* Desglose de costos: 1 columna */
+  .desgloseGrid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.35rem !important;
+  }
+
+  /* Precio final: botones apilados */
+  .precioActions {
+    flex-direction: column;
+  }
+
+  /* Tiempo de impresión */
+  .timeFields { gap: 0.25rem; }
+
+  /* Campos en línea: 1 columna */
+  .inlineFields { grid-template-columns: 1fr; }
+
+  /* mainLayout sin padding extra */
+  .mainLayout { padding: 0 0.75rem; }
+
+  /* resultCardWide */
+  .resultCardWide { padding: 0.8rem 0.85rem; }
 }
 
 /* ── Cards ───────────────────────────────────── */
@@ -802,6 +909,22 @@
   margin-top: 0.75rem;
 }
 
+/* Botones Guardar + PDF bajo el precio */
+.precioActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.precioActions .btnGuardar,
+.precioActions .btnPDF {
+  flex: 1;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+}
+
 .sliderSection {
   flex: 1;
   min-width: 180px;
@@ -968,4 +1091,144 @@
   .btnCalcular, .btnReset, .btnPDF, .btnAddInline, .btnRemove { display: none !important; }
   .slider { display: none; }
   .sliderInline { background: #f8fafc !important; }
+}
+
+/* ── SearchableSelect ──────────────────────────────────────────────────── */
+.ssWrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Botón trigger */
+.ssTrigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 7px;
+  color: #f1f5f9;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  padding: 0.42rem 0.65rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+.ssTrigger:hover {
+  border-color: rgba(245,158,11,0.3);
+  background: rgba(245,158,11,0.03);
+}
+.ssTriggerOpen {
+  border-color: rgba(245,158,11,0.45) !important;
+  background: rgba(245,158,11,0.04) !important;
+}
+.ssTriggerEmpty .ssTriggerLabel { color: #475569; }
+
+.ssTriggerLabel {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ssArrow {
+  font-size: 0.5rem;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+/* Dropdown panel */
+.ssDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #1e1e1e;
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+  z-index: 200;
+  overflow: hidden;
+  animation: ssIn 0.15s ease;
+}
+
+@keyframes ssIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Input búsqueda */
+.ssSearchWrap {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.ssSearch {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 6px;
+  color: #f1f5f9;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.78rem;
+  padding: 0.38rem 0.65rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.ssSearch:focus { border-color: rgba(245,158,11,0.45); }
+.ssSearch::placeholder { color: #475569; }
+
+/* Lista de opciones */
+.ssList {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.3rem;
+}
+
+.ssList::-webkit-scrollbar { width: 4px; }
+.ssList::-webkit-scrollbar-track { background: transparent; }
+.ssList::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.25); border-radius: 4px; }
+
+/* Opción individual */
+.ssOption {
+  padding: 0.42rem 0.65rem;
+  border-radius: 6px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ssOption:hover {
+  background: rgba(245,158,11,0.1);
+  color: #f1f5f9;
+}
+.ssOptionSelected {
+  background: rgba(245,158,11,0.15) !important;
+  color: #f59e0b !important;
+  font-weight: 600;
+}
+.ssOptionSpecial {
+  color: #64748b;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  margin-top: 0.2rem;
+  padding-top: 0.55rem;
+}
+.ssOptionSpecial:hover { color: #94a3b8; }
+
+/* Sin resultados */
+.ssEmpty {
+  padding: 0.65rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #475569;
+  font-family: 'Poppins', sans-serif;
 }

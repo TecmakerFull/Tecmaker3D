@@ -16,23 +16,31 @@ const fmt = (f) =>
 const AdminUsuarios = () => {
   const { session, esAdmin } = useAuthStore()
   const [usuarios, setUsuarios]  = useState([])
-  const [cargando, setCargando]  = useState(true)
+  const [cargando, setCargando]  = useState(false)
   const [busqueda, setBusqueda]  = useState('')
 
   useEffect(() => {
-    if (!session || !esAdmin) return
+    if (!session || !esAdmin) {
+      setCargando(false)
+      return
+    }
     cargar()
   }, [session, esAdmin])
 
   const cargar = async () => {
     setCargando(true)
-    const { data, error } = await supabase
-      .from('perfiles')
-      .select('id, nombre, email, telefono, es_admin, created_at, avatar_url')
-      .order('created_at', { ascending: false })
-    if (error) console.error('Error cargando usuarios:', error.message)
-    setUsuarios(data || [])
-    setCargando(false)
+    try {
+      const { data, error } = await supabase
+        .from('perfiles')
+        .select('id, nombre, email, telefono, es_admin, created_at, avatar_url')
+        .order('created_at', { ascending: false })
+      if (error) console.error('Error cargando usuarios:', error.message)
+      setUsuarios(data || [])
+    } catch (e) {
+      console.error('Excepción cargando usuarios:', e)
+    } finally {
+      setCargando(false)
+    }
   }
 
   if (!session || !esAdmin) return null

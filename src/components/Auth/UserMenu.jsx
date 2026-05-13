@@ -2,6 +2,16 @@ import { useState, useRef, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import useAuthStore from '../../stores/useAuthStore'
 import useReservasStore from '../../stores/useReservasStore'
+import PersonOutlinedIcon      from '@mui/icons-material/PersonOutlined'
+import AccessTimeOutlinedIcon  from '@mui/icons-material/AccessTimeOutlined'
+import LockOutlinedIcon        from '@mui/icons-material/LockOutlined'
+import LoginOutlinedIcon       from '@mui/icons-material/LoginOutlined'
+import PersonAddOutlinedIcon   from '@mui/icons-material/PersonAddOutlined'
+import KeyOutlinedIcon         from '@mui/icons-material/KeyOutlined'
+import VisibilityOutlinedIcon  from '@mui/icons-material/VisibilityOutlined'
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined'
+import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
+import CheckCircleOutlinedIcon  from '@mui/icons-material/CheckCircleOutlined'
 import styles from './UserMenu.module.css'
 
 // ── SVG Google ──────────────────────────────────────────
@@ -85,9 +95,9 @@ export const LoginModal = ({ onClose }) => {
         {/* Header */}
         <div className={styles.modalHeader}>
           <span className={styles.modalTitle}>
-            {modo === 'login'    ? '👋 Iniciar sesión'      :
-             modo === 'registro' ? '✨ Crear cuenta'        :
-                                   '🔑 Recuperar contraseña'}
+            {modo === 'login'    ? <><LoginOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.5 }} /> Iniciar sesión</>      :
+             modo === 'registro' ? <><PersonAddOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.5 }} /> Crear cuenta</>        :
+                                   <><KeyOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.5 }} /> Recuperar contraseña</>}
           </span>
           <button className={styles.modalClose} onClick={onClose}>✕</button>
         </div>
@@ -136,13 +146,15 @@ export const LoginModal = ({ onClose }) => {
                   onClick={() => setShowPass(v => !v)}
                   tabIndex={-1}
                 >
-                  {showPass ? '🙈' : '👁'}
+                  {showPass
+                    ? <VisibilityOffOutlinedIcon sx={{ fontSize: '1rem' }} />
+                    : <VisibilityOutlinedIcon    sx={{ fontSize: '1rem' }} />}
                 </button>
               </div>
             )}
 
-            {error && <p className={styles.errorMsg}>⚠️ {error}</p>}
-            {ok    && <p className={styles.okMsg}>✅ {ok}</p>}
+            {error && <p className={styles.errorMsg}><WarningAmberOutlinedIcon sx={{ fontSize: '0.85rem', verticalAlign: 'middle', mr: 0.4 }} />{error}</p>}
+            {ok    && <p className={styles.okMsg}><CheckCircleOutlinedIcon sx={{ fontSize: '0.85rem', verticalAlign: 'middle', mr: 0.4 }} />{ok}</p>}
 
             {/* Botón reenviar confirmación */}
             {registroOk && (
@@ -254,16 +266,16 @@ const UserMenu = () => {
           </div>
           <div className={styles.dropdownDivider} />
           <a href="/perfil" className={styles.dropdownItem} onClick={() => setAbierto(false)}>
-            👤 Mi perfil
+            <PersonOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.6 }} /> Mi perfil
           </a>
           {reservasActivas > 0 && (
             <a href="/perfil#reservas" className={styles.dropdownItem} onClick={() => setAbierto(false)}>
-              ⏱ Mis reservas <span className={styles.dropdownBadge}>{reservasActivas}</span>
+              <AccessTimeOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.6 }} /> Mis reservas <span className={styles.dropdownBadge}>{reservasActivas}</span>
             </a>
           )}
           <div className={styles.dropdownDivider} />
           <button className={`${styles.dropdownItem} ${styles.dropdownLogout}`} onClick={logout}>
-            🔒 Cerrar sesión
+            <LockOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.6 }} /> Cerrar sesión
           </button>
         </div>
       )}

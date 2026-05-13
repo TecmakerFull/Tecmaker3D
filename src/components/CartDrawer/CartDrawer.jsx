@@ -22,6 +22,7 @@ const CartDrawer = () => {
   const removeItem   = useCartStore((state) => state.removeItem)
   const incrementItem = useCartStore((state) => state.incrementItem)
   const decrementItem = useCartStore((state) => state.decrementItem)
+  const setItemQuantity = useCartStore((state) => state.setItemQuantity)
   const clearCart    = useCartStore((state) => state.clearCart)
   const stock        = useStockStore((state) => state.stock)
   const session      = useAuthStore((s) => s.session)
@@ -30,7 +31,9 @@ const CartDrawer = () => {
 
   const [showAuthModal,  setShowAuthModal]  = useState(false)
   const [reservando,     setReservando]     = useState(false)
-  const [erroresReserva, setErroresReserva] = useState([])  // items que no se pudieron reservar
+  const [erroresReserva, setErroresReserva] = useState([])
+  // Valor local del input de cantidad (string mientras el usuario edita)
+  const [qtyInputs, setQtyInputs] = useState({})
 
   const totalItems = items.reduce((acc, item) => acc + item.cantidad, 0)
   const totalPrice = items.reduce((acc, item) => acc + item.precio * item.cantidad, 0)
@@ -50,7 +53,7 @@ const CartDrawer = () => {
 
   const handleIncrement = (item) => {
     const stockReal = (stock[item.id] ?? 0) - (reservasGlobal[item.id]?.cantidad || 0)
-    if (item.cantidad >= stockReal) return   // no superar stock disponible
+    if (item.cantidad >= stockReal) return
     incrementItem(item.id)
   }
 
@@ -60,6 +63,27 @@ const CartDrawer = () => {
 
   const handleRemove = (item) => {
     removeItem(item.id)
+  }
+
+  // Cantidad editable: mientras escribe, guarda el string local
+  const handleQtyChange = (id, value) => {
+    setQtyInputs(prev => ({ ...prev, [id]: value }))
+  }
+
+  // Al perder foco o presionar Enter, valida y confirma
+  const handleQtyCommit = (item) => {
+    const raw = qtyInputs[item.id]
+    if (raw === undefined) return   // no hubo edición
+    const parsed = parseInt(raw, 10)
+    const max = stockDisponible(item)
+    if (isNaN(parsed) || parsed <= 0) {
+      removeItem(item.id)           // vacío o cero → eliminar
+    } else {
+      const clamped = Math.min(parsed, max)
+      setItemQuantity(item.id, clamped)
+    }
+    // Limpiar el valor local para que se muestre el del store
+    setQtyInputs(prev => { const n = { ...prev }; delete n[item.id]; return n })
   }
 
   const handleClearCart = () => {
@@ -196,7 +220,17 @@ const CartDrawer = () => {
                     >
                       −
                     </Button>
-                    <span className={styles.qty}>{item.cantidad}</span>
+                    <input
+                      type="number"
+                      className={styles.qtyInput}
+                      value={qtyInputs[item.id] !== undefined ? qtyInputs[item.id] : item.cantidad}
+                      min={1}
+                      max={stockDisponible(item)}
+                      onChange={e => handleQtyChange(item.id, e.target.value)}
+                      onBlur={() => handleQtyCommit(item)}
+                      onKeyDown={e => e.key === 'Enter' && handleQtyCommit(item)}
+                      id={`qty-input-${item.id}`}
+                    />
                     <Button
                       className={styles.qtyBtn}
                       onClick={() => handleIncrement(item)}

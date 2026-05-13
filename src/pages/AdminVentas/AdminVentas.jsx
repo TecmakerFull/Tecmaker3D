@@ -73,7 +73,10 @@ const AdminVentas = () => {
   const [guardandoEdit, setGuardandoEdit] = useState(false)
 
   useEffect(() => {
-    if (!session || !esAdmin) return
+    if (!session || !esAdmin) {
+      setCargando(false)
+      return
+    }
     cargar()
     cargarUsuarios()
   }, [session, esAdmin])
@@ -191,8 +194,9 @@ const AdminVentas = () => {
       setVentas(todas)
     } catch (err) {
       console.error('Error cargando ventas:', err.message)
+    } finally {
+      setCargando(false)
     }
-    setCargando(false)
   }
 
   // ── Soft-delete ─────────────────────────────────────────────

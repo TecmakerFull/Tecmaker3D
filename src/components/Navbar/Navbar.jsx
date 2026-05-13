@@ -31,6 +31,9 @@ const Navbar = () => {
   const [menuOpen,   setMenuOpen]   = useState(false)
   const [tiendaOpen, setTiendaOpen] = useState(false)
   const [adminOpen,  setAdminOpen]  = useState(false)
+  const [mobileShopOpen,  setMobileShopOpen]  = useState(false)
+  const [mobileAdminOpen, setMobileAdminOpen] = useState(false)
+  const navRef      = useRef(null)
   const dropdownRef = useRef(null)
   const adminRef    = useRef(null)
   const location    = useLocation()
@@ -54,15 +57,27 @@ const Navbar = () => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setTiendaOpen(false)
       if (adminRef.current    && !adminRef.current.contains(e.target))    setAdminOpen(false)
+      // Cierra el menú hamburguesa si el click es fuera de la barra de nav
+      if (navRef.current && !navRef.current.contains(e.target)) {
+        setMenuOpen(false)
+        setMobileShopOpen(false)
+        setMobileAdminOpen(false)
+      }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const handleNavClick = () => { setMenuOpen(false); setTiendaOpen(false); setAdminOpen(false) }
+  const handleNavClick = () => {
+    setMenuOpen(false)
+    setTiendaOpen(false)
+    setAdminOpen(false)
+    setMobileShopOpen(false)
+    setMobileAdminOpen(false)
+  }
 
   return (
-    <nav className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''}`}>
+    <nav className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''}`} ref={navRef}>
       <div className={styles.container}>
 
         {/* Logo */}
@@ -162,35 +177,61 @@ const Navbar = () => {
             </li>
           )}
 
-          {/* Mobile: subitems de Tienda */}
+          {/* Mobile: Tienda como acordeón */}
           <li className={styles.mobileOnly}>
-            <span className={styles.mobileSection}>— Tienda —</span>
-            {TIENDA_ITEMS.map(({ to, label }) => (
-              <NavLink key={to} to={to}
-                className={({ isActive }) =>
-                  `${styles.navLink} ${styles.mobileSubLink} ${isActive ? styles.navLinkActive : ''}`
-                }
-                onClick={handleNavClick}
-              >
-                {label}
-              </NavLink>
-            ))}
+            <button
+              className={`${styles.navLink} ${styles.dropdownBtn} ${TIENDA_ITEMS.some(i => location.pathname.startsWith(i.to)) ? styles.navLinkActive : ''}`}
+              onClick={() => setMobileShopOpen(o => !o)}
+            >
+              Tienda
+              <span className={`${styles.dropdownArrow} ${mobileShopOpen ? styles.dropdownArrowOpen : ''}`}>▾</span>
+            </button>
+            {mobileShopOpen && (
+              <ul className={styles.mobileSubList}>
+                {TIENDA_ITEMS.map(({ to, label }) => (
+                  <li key={to}>
+                    <NavLink
+                      to={to}
+                      className={({ isActive }) =>
+                        `${styles.navLink} ${styles.mobileSubLink} ${isActive ? styles.navLinkActive : ''}`
+                      }
+                      onClick={handleNavClick}
+                    >
+                      {label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
 
-          {/* Mobile: subitems de Admin (solo si es admin) */}
+          {/* Mobile: Admin como acordeón */}
           {esAdmin && (
             <li className={styles.mobileOnly}>
-              <span className={`${styles.mobileSection} ${styles.mobileSectionAdmin}`}>— Admin —</span>
-              {ADMIN_ITEMS.map(({ to, label }) => (
-                <NavLink key={to} to={to}
-                  className={({ isActive }) =>
-                    `${styles.navLink} ${styles.mobileSubLink} ${styles.adminBtn} ${isActive ? styles.navLinkActive : ''}`
-                  }
-                  onClick={handleNavClick}
-                >
-                  {label}
-                </NavLink>
-              ))}
+              <button
+                className={`${styles.navLink} ${styles.dropdownBtn} ${ADMIN_ITEMS.some(i => location.pathname.startsWith(i.to)) ? styles.navLinkActive : ''}`}
+                onClick={() => setMobileAdminOpen(o => !o)}
+              >
+                Admin
+                <span className={`${styles.dropdownArrow} ${mobileAdminOpen ? styles.dropdownArrowOpen : ''}`}>▾</span>
+              </button>
+              {mobileAdminOpen && (
+                <ul className={styles.mobileSubList}>
+                  {ADMIN_ITEMS.map(({ to, label }) => (
+                    <li key={to}>
+                      <NavLink
+                        to={to}
+                        className={({ isActive }) =>
+                          `${styles.navLink} ${styles.mobileSubLink} ${isActive ? styles.navLinkActive : ''}`
+                        }
+                        onClick={handleNavClick}
+                      >
+                        {label}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           )}
 

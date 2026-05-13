@@ -22,16 +22,20 @@ const Perfil = () => {
   const { reservas, cargarReservas, cancelarReserva } = useReservasStore()
 
   const [compras,       setCompras]       = useState([])
-  const [cargandoHist,  setCargandoHist]  = useState(true)
+  const [cargandoHist,  setCargandoHist]  = useState(false)
   const [cotizaciones,  setCotizaciones]  = useState([])
-  const [cargandoCot,   setCargandoCot]   = useState(true)
+  const [cargandoCot,   setCargandoCot]   = useState(false)
   const [editando,      setEditando]      = useState(false)
   const [formPerfil,    setFormPerfil]    = useState({ nombre: '', telefono: '' })
   const [guardandoPerf, setGuardandoPerf] = useState(false)
   const [countdowns,    setCountdowns]    = useState({})
 
   useEffect(() => {
-    if (!session) return
+    if (!session) {
+      setCargandoHist(false)
+      setCargandoCot(false)
+      return
+    }
     cargarReservas()
     cargarHistorial()
     cargarCotizaciones()
@@ -61,24 +65,34 @@ const Perfil = () => {
 
   const cargarHistorial = async () => {
     setCargandoHist(true)
-    const { data } = await supabase
-      .from('compras')
-      .select('*, productos(nombre, imagen, marca)')
-      .eq('usuario_id', session.user.id)
-      .order('created_at', { ascending: false })
-    setCompras(data || [])
-    setCargandoHist(false)
+    try {
+      const { data } = await supabase
+        .from('compras')
+        .select('*, productos(nombre, imagen, marca)')
+        .eq('usuario_id', session.user.id)
+        .order('created_at', { ascending: false })
+      setCompras(data || [])
+    } catch (e) {
+      console.error('Error cargando historial:', e)
+    } finally {
+      setCargandoHist(false)
+    }
   }
 
   const cargarCotizaciones = async () => {
     setCargandoCot(true)
-    const { data } = await supabase
-      .from('cotizaciones')
-      .select('id, created_at, nombre_producto, cliente, precio_final, costo_total, margen, impresora_nombre')
-      .eq('usuario_id', session.user.id)
-      .order('created_at', { ascending: false })
-    setCotizaciones(data || [])
-    setCargandoCot(false)
+    try {
+      const { data } = await supabase
+        .from('cotizaciones')
+        .select('id, created_at, nombre_producto, cliente, precio_final, costo_total, margen, impresora_nombre')
+        .eq('usuario_id', session.user.id)
+        .order('created_at', { ascending: false })
+      setCotizaciones(data || [])
+    } catch (e) {
+      console.error('Error cargando cotizaciones:', e)
+    } finally {
+      setCargandoCot(false)
+    }
   }
 
   const eliminarCotizacion = async (id) => {

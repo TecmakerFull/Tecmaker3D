@@ -45,47 +45,49 @@ const useStockStore = create((set, get) => ({
   // Sin fallback al .js. Si no hay datos, se muestra spinner.
   cargarPreciosPublicos: async () => {
     set({ cargandoCatalogo: true })
-    const { data, error } = await supabase
-      .from('productos')
-      .select('id, nombre, marca, tipo, material, color, precio, descripcion, imagen, peso, diametro, temp_impresion, temp_cama, especificaciones, link_compra, stock, created_at')
-      .eq('activo', true)
-      .order('created_at', { ascending: false })
+    try {
+      const { data, error } = await supabase
+        .from('productos')
+        .select('id, nombre, marca, tipo, material, color, precio, descripcion, imagen, peso, diametro, temp_impresion, temp_cama, especificaciones, link_compra, stock, created_at')
+        .eq('activo', true)
+        .order('created_at', { ascending: false })
 
-    if (error) {
-      console.error('❌ Error Supabase:', error.message, '| Detalle:', error.details, '| Hint:', error.hint)
-      set({ cargandoCatalogo: false })
-      return
-    }
-
-    const stockMap   = {}
-    const precioMap  = {}
-    const catalogoMap = {}
-
-    data.forEach((p) => {
-      stockMap[p.id]  = p.stock
-      precioMap[p.id] = p.precio
-      // Normalizar nombres snake_case → camelCase y agregar alias útiles
-      catalogoMap[p.id] = {
-        ...p,
-        tempImpresion: p.temp_impresion,
-        tempCama:      p.temp_cama,
-        // Para accesorios: categoria viene del campo 'marca' en Supabase
-        categoria: p.tipo === 'accesorio' ? p.marca : undefined,
+      if (error) {
+        console.error('❌ Error Supabase:', error.message, '| Detalle:', error.details, '| Hint:', error.hint)
+        return
       }
-    })
 
-    const make = (tipo) => data.filter(p => p.tipo === tipo).map(p => ({ ...catalogoMap[p.id] }))
+      const stockMap    = {}
+      const precioMap   = {}
+      const catalogoMap = {}
 
-    set({
-      stock:               stockMap,
-      precios:             precioMap,
-      catalogo:            catalogoMap,
-      catalogoFilamentos:  make('filamento'),
-      catalogoAccesorios:  make('accesorio'),
-      catalogoImpresiones: make('impresion'),
-      catalogoSTL:         make('stl'),
-      cargandoCatalogo:    false,
-    })
+      data.forEach((p) => {
+        stockMap[p.id]  = p.stock
+        precioMap[p.id] = p.precio
+        catalogoMap[p.id] = {
+          ...p,
+          tempImpresion: p.temp_impresion,
+          tempCama:      p.temp_cama,
+          categoria: p.tipo === 'accesorio' ? p.marca : undefined,
+        }
+      })
+
+      const make = (tipo) => data.filter(p => p.tipo === tipo).map(p => ({ ...catalogoMap[p.id] }))
+
+      set({
+        stock:               stockMap,
+        precios:             precioMap,
+        catalogo:            catalogoMap,
+        catalogoFilamentos:  make('filamento'),
+        catalogoAccesorios:  make('accesorio'),
+        catalogoImpresiones: make('impresion'),
+        catalogoSTL:         make('stl'),
+      })
+    } catch (e) {
+      console.error('❌ Excepción cargando catálogo:', e)
+    } finally {
+      set({ cargandoCatalogo: false })
+    }
   },
 
   // ── Función interna: actualiza BD + UI ─────────

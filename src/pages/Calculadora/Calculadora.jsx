@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import ReactDOM from 'react-dom'
 import useStockStore   from '../../stores/useStockStore'
 import useAuthStore    from '../../stores/useAuthStore'
 import { supabase }   from '../../lib/supabase'
@@ -20,6 +21,162 @@ import CheckCircleOutlinedIcon    from '@mui/icons-material/CheckCircleOutlined'
 import AccessTimeOutlinedIcon     from '@mui/icons-material/AccessTimeOutlined'
 import GoogleIcon                 from '@mui/icons-material/Google'
 import styles from './Calculadora.module.css'
+
+// ── SearchableSelect — dropdown con búsqueda (portal, sin clipping) ───────
+ const SearchableSelect = ({ value, onChange, options, placeholder = 'Seleccioná...', loading = false }) => {
+  const [open,   setOpen]   = useState(false)
+  const [search, setSearch] = useState('')
+  const [pos,    setPos]    = useState({ top: 0, left: 0, width: 0 })
+  const triggerRef = useRef(null)
+  const inputRef   = useRef(null)
+
+  const selected = options.find(o => o.value === value)
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase()
+    return options.filter(o => !q || o.label.toLowerCase().includes(q))
+  }, [options, search])
+
+  const openDropdown = () => {
+    const rect = triggerRef.current?.getBoundingClientRect()
+    if (rect) {
+      setPos({
+        top:   rect.bottom + window.scrollY + 4,
+        left:  rect.left   + window.scrollX,
+        width: rect.width,
+      })
+    }
+    setOpen(true)
+    setSearch('')
+    setTimeout(() => inputRef.current?.focus(), 30)
+  }
+
+  const closeDropdown = useCallback(() => {
+    setOpen(false)
+    setSearch('')
+  }, [])
+
+  const handleSelect = (val) => {
+    onChange(val)
+    closeDropdown()
+  }
+
+  useEffect(() => {
+    if (!open) return
+    const onOutside = (e) => {
+      if (!triggerRef.current?.contains(e.target) &&
+          !document.getElementById('ss-portal')?.contains(e.target)) {
+        closeDropdown()
+      }
+    }
+    const onKey = (e) => { if (e.key === 'Escape') closeDropdown() }
+    const onScroll = () => {
+      const rect = triggerRef.current?.getBoundingClientRect()
+      if (rect) setPos({ top: rect.bottom + window.scrollY + 4, left: rect.left + window.scrollX, width: rect.width })
+    }
+    document.addEventListener('mousedown', onOutside)
+    document.addEventListener('keydown', onKey)
+    window.addEventListener('scroll', onScroll, true)
+    return () => {
+      document.removeEventListener('mousedown', onOutside)
+      document.removeEventListener('keydown', onKey)
+      window.removeEventListener('scroll', onScroll, true)
+    }
+  }, [open, closeDropdown])
+
+  const dropdown = open ? ReactDOM.createPortal(
+    <div
+      id="ss-portal"
+      style={{
+        position:  'absolute',
+        top:       pos.top,
+        left:      pos.left,
+        width:     pos.width,
+        zIndex:    9999,
+        background: '#1e1e1e',
+        border:    '1px solid rgba(245,158,11,0.3)',
+        borderRadius: '10px',
+        boxShadow: '0 16px 40px rgba(0,0,0,0.7)',
+        overflow:  'hidden',
+        animation: 'none',
+      }}
+    >
+      <div style={{ padding: '0.45rem' }}>
+        <input
+          ref={inputRef}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(245,158,11,0.25)',
+            borderRadius: '6px',
+            color: '#f1f5f9',
+            fontFamily: 'Poppins, sans-serif',
+            fontSize: '0.78rem',
+            padding: '0.38rem 0.65rem',
+            outline: 'none',
+          }}
+          type="text"
+          placeholder="🔍 Buscar..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+      </div>
+      <div style={{ maxHeight: '220px', overflowY: 'auto', padding: '0.2rem 0.3rem 0.3rem' }}>
+        {filtered.length === 0 && (
+          <div style={{ padding: '0.6rem', textAlign: 'center', fontSize: '0.75rem', color: '#475569', fontFamily: 'Poppins,sans-serif' }}>
+            Sin resultados
+          </div>
+        )}
+        {filtered.map((o, i) => (
+          <div
+            key={o.value}
+            onMouseDown={e => { e.preventDefault(); handleSelect(o.value) }}
+            style={{
+              padding: '0.42rem 0.65rem',
+              borderRadius: '6px',
+              fontFamily: 'Poppins, sans-serif',
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              borderTop: o.special ? '1px solid rgba(255,255,255,0.05)' : 'none',
+              marginTop: o.special ? '0.2rem' : '0',
+              color: o.value === value ? '#f59e0b' : o.special ? '#64748b' : '#cbd5e1',
+              background: o.value === value ? 'rgba(245,158,11,0.12)' : 'transparent',
+              fontWeight: o.value === value ? 600 : 400,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.08)'; e.currentTarget.style.color = '#f1f5f9' }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = o.value === value ? 'rgba(245,158,11,0.12)' : 'transparent'
+              e.currentTarget.style.color = o.value === value ? '#f59e0b' : o.special ? '#64748b' : '#cbd5e1'
+            }}
+          >
+            {o.label}
+          </div>
+        ))}
+      </div>
+    </div>,
+    document.body
+  ) : null
+
+  return (
+    <div className={styles.ssWrap}>
+      <button
+        ref={triggerRef}
+        type="button"
+        className={`${styles.ssTrigger} ${open ? styles.ssTriggerOpen : ''} ${!value ? styles.ssTriggerEmpty : ''}`}
+        onClick={openDropdown}
+      >
+        <span className={styles.ssTriggerLabel}>
+          {loading ? 'Cargando...' : (selected?.label || placeholder)}
+        </span>
+        <span className={styles.ssArrow}>{open ? '▲' : '▼'}</span>
+      </button>
+      {dropdown}
+    </div>
+  )
+}
 
 const IMPRESORAS = [
   { id: 'ender3',      nombre: 'Creality Ender 3',    consumoW: 150, desgasteHora: 120 },
@@ -397,22 +554,32 @@ ${filasMDO ? `<div class="section">
   return (
     <div className={styles.page}>
 
-      {/* ── Header ── */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <h1 className={styles.headerTitle}><CalculateOutlinedIcon sx={{ verticalAlign: 'middle', mr: 0.5, fontSize: '1.6rem' }} /> Calculadora <span>3D</span></h1>
         </div>
         <div className={styles.headerRight}>
-          <input
-            className={styles.nombreInput}
-            type="text"
-            placeholder="Nombre del producto / presupuesto..."
-            value={nombreProducto}
-            onChange={e => setNombreProducto(e.target.value)}
-          />
-          <button className={styles.btnGuardar} onClick={handleGuardar}><SaveOutlinedIcon sx={{ fontSize: '0.95rem', verticalAlign: 'middle', mr: 0.4 }} /> Guardar</button>
-          <button className={styles.btnReset}   onClick={handleReset}>Reiniciar</button>
-          <button className={styles.btnPDF}     onClick={handleExportPDF}><PictureAsPdfOutlinedIcon sx={{ fontSize: '0.95rem', verticalAlign: 'middle', mr: 0.4 }} /> PDF</button>
+          <div className={styles.headerInputGroup}>
+            <label className={styles.headerInputLabel}>Nombre del producto</label>
+            <input
+              className={styles.nombreInput}
+              type="text"
+              placeholder="Presupuesto, pieza, etc..."
+              value={nombreProducto}
+              onChange={e => setNombreProducto(e.target.value)}
+            />
+          </div>
+          <div className={styles.headerInputGroup}>
+            <label className={styles.headerInputLabel}>Cliente</label>
+            <input
+              className={styles.nombreInput}
+              type="text"
+              placeholder="Nombre del cliente..."
+              value={cliente}
+              onChange={e => setCliente(e.target.value)}
+            />
+          </div>
+          <button className={styles.btnReset} onClick={handleReset}>Reiniciar</button>
           {guardadoOk && <span className={styles.savedBadge}><CheckCircleOutlinedIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle' }} /> Guardado</span>}
         </div>
       </div>
@@ -445,19 +612,19 @@ ${filasMDO ? `<div class="section">
                 <div key={row.id} className={styles.animIn}>
                   <div className={styles.materialGrid}>
                     <span className={styles.rowNum}>{idx + 1}</span>
-                    <select className={styles.select} value={row.productoId}
-                      onChange={e => updateMaterial(row.id, 'productoId', e.target.value)}>
-                      <option value="">— Filamento —</option>
-                      {cargandoCatalogo
-                        ? <option disabled>Cargando...</option>
-                        : catalogoFilamentos.map(p => (
-                            <option key={p.id} value={p.id}>
-                              {p.marca ? `[${p.marca}] ` : ''}{p.nombre} {p.color ? `(${p.color})` : ''}
-                            </option>
-                          ))
-                      }
-                      <option value="otro">Precio manual</option>
-                    </select>
+                    <SearchableSelect
+                      value={row.productoId}
+                      onChange={val => updateMaterial(row.id, 'productoId', val)}
+                      loading={cargandoCatalogo}
+                      placeholder="— Filamento —"
+                      options={[
+                        ...catalogoFilamentos.map(p => ({
+                          value: p.id,
+                          label: `${p.marca ? `[${p.marca}] ` : ''}${p.nombre}${p.color ? ` (${p.color})` : ''}`,
+                        })),
+                        { value: 'otro', label: '✏ Precio manual', special: true },
+                      ]}
+                    />
                     <div className={styles.inputGroup}>
                       {row.productoId === 'otro'
                         ? <input className={styles.input} type="number" min="0"
@@ -516,17 +683,19 @@ ${filasMDO ? `<div class="section">
                 <div key={row.id} className={styles.animIn}>
                   <div className={styles.materialGrid}>
                     <span className={styles.rowNum}>{idx + 1}</span>
-                    <select className={styles.select} value={row.productoId}
-                      onChange={e => updateAccesorio(row.id, 'productoId', e.target.value)}>
-                      <option value="">— Accesorio —</option>
-                      {cargandoCatalogo
-                        ? <option disabled>Cargando...</option>
-                        : accesoriosParaCliente.map(p => (
-                            <option key={p.id} value={p.id}>{p.nombre}</option>
-                          ))
-                      }
-                      <option value="otro">Manual</option>
-                    </select>
+                    <SearchableSelect
+                      value={row.productoId}
+                      onChange={val => updateAccesorio(row.id, 'productoId', val)}
+                      loading={cargandoCatalogo}
+                      placeholder="— Accesorio —"
+                      options={[
+                        ...accesoriosParaCliente.map(p => ({
+                          value: p.id,
+                          label: p.nombre,
+                        })),
+                        { value: 'otro', label: '✏ Manual', special: true },
+                      ]}
+                    />
                     <div className={styles.inputGroup}>
                       {row.productoId === 'otro'
                         ? <input className={styles.input} type="number" min="0"
@@ -747,25 +916,6 @@ ${filasMDO ? `<div class="section">
             </div>
           </div>
 
-          {/* Tarjeta Cliente (opcional) */}
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardIcon}><PersonOutlinedIcon fontSize="small" /></div>
-              <div>
-                <p className={styles.cardTitle}>Cliente</p>
-                <p className={styles.cardSubtitle}>Opcional — para el presupuesto</p>
-              </div>
-            </div>
-            <div className={styles.fieldGroup}>
-              <input
-                className={styles.input}
-                type="text"
-                placeholder="Nombre del cliente..."
-                value={cliente}
-                onChange={e => setCliente(e.target.value)}
-              />
-            </div>
-          </div>
 
           {/* ── Precio de Venta (abajo del rightCol) ── */}
           <div className={styles.resultCardWide}>
@@ -800,6 +950,14 @@ ${filasMDO ? `<div class="section">
             <div className={styles.precioMainBox}>
               <p className={styles.precioMainVal}>{fmt(resultado.precioFinal)}</p>
               <p className={styles.precioMainMargen}>Precio de venta sugerido con {margen}% de ganancia</p>
+            </div>
+            <div className={styles.precioActions}>
+              <button className={styles.btnGuardar} onClick={handleGuardar}>
+                <SaveOutlinedIcon sx={{ fontSize: '0.95rem', verticalAlign: 'middle', mr: 0.4 }} /> Guardar
+              </button>
+              <button className={styles.btnPDF} onClick={handleExportPDF}>
+                <PictureAsPdfOutlinedIcon sx={{ fontSize: '0.95rem', verticalAlign: 'middle', mr: 0.4 }} /> Exportar PDF
+              </button>
             </div>
           </div>
 

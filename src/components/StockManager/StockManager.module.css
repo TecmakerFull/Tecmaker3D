@@ -78,13 +78,76 @@
 /* Resumen */
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   margin-bottom: 2rem;
 }
 
-@media (max-width: 600px) {
-  .summaryGrid { grid-template-columns: 1fr; }
+/* ── Mobile ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page {
+    padding-top: 90px;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+    overflow-x: hidden;
+  }
+
+  .title { font-size: 1.5rem !important; }
+
+  /* Summary: 2 columnas × 2 filas */
+  .summaryGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+  }
+  .summaryNumber { font-size: 1.8rem; }
+  .summaryCard   { padding: 0.9rem 0.75rem; }
+
+  /* Tabs + acciones: tabs arriba, botones abajo */
+  .tabsRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+  .tabsRow .tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
+  }
+  .tab {
+    font-size: 0.72rem;
+    padding: 0.5rem 0.4rem;
+    text-align: center;
+  }
+  .tabsActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+  .btnExportar,
+  .btnNuevo {
+    font-size: 0.78rem;
+    padding: 0.5rem 0.6rem;
+    justify-content: center;
+  }
+
+  /* Buscador full width */
+  .tableSearch  { padding: 0.6rem 0.75rem; gap: 0.5rem; }
+  .tableSearchInput { width: 100%; flex: 1; }
+
+  /* Tabla: scroll horizontal contenido */
+  .tableWrapper { border-radius: 8px; }
+  .table { min-width: 560px; }
+  .table th,
+  .table td { padding: 0.6rem 0.6rem; font-size: 0.78rem; }
+  .productImg { width: 32px; height: 32px; }
+  .productName { font-size: 0.78rem; }
+  .setInput { width: 48px; font-size: 0.78rem; }
+}
+
+@media (max-width: 480px) {
+  .summaryGrid { grid-template-columns: repeat(2, 1fr); }
+  .tabsRow .tabs { grid-template-columns: 1fr 1fr 1fr; }
 }
 
 .summaryCard {
