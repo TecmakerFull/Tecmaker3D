@@ -23,7 +23,7 @@ const formatPrecio = n => `$${Number(n).toLocaleString('es-AR')}`
 
 const MENSAJE_INICIAL = {
   role: 'model',
-  text: '¡Hola! Soy Tecko, tu asesor de TecMaker 3D 🖨️\nPuedo ayudarte con:\n• 🧵 Recomendaciones de filamentos\n• 📷 Analizá una foto de lo que querés imprimir\n• 🔧 Problemas de impresión (troubleshooting)\n• 💰 Cálculo de costos\n• 🗺️ Orientarte en el sitio',
+  text: '¡Hola! Soy Tecko, tu asesor de TecMaker 3D 🧊\nPuedo ayudarte con:\n• 🧵 Recomendaciones de filamentos\n• 📷 Analizá una foto de lo que querés imprimir\n• 🔧 Problemas de impresión (troubleshooting)\n• 💰 Cálculo de costos\n• 🗺️ Orientarte en el sitio',
   recomendaciones: [],
 }
 

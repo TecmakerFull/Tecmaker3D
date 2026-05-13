@@ -693,18 +693,24 @@
 .infoTip:hover::after {
   content: attr(data-tip);
   position: absolute;
-  bottom: calc(100% + 5px);
+  bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: #1e1e1e;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 6px;
-  padding: 0.35rem 0.55rem;
+  background: #1e293b;
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 7px;
+  padding: 0.4rem 0.65rem;
   font-size: 0.65rem;
+  font-weight: 400;
   color: #94a3b8;
-  white-space: nowrap;
-  z-index: 10;
+  white-space: normal;
+  max-width: 220px;
+  width: max-content;
+  text-align: left;
+  z-index: 50;
   pointer-events: none;
+  line-height: 1.5;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 /* ── Fila de resultados (abajo) ──────────────── */

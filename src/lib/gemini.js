@@ -120,7 +120,7 @@ VARIABLES CON VALORES POR DEFECTO (Bambu Lab A1):
   · Consumo: 230 W
   · Desgaste/amortización: $320/h
   · Tarifa eléctrica: $384/kWh (EPE Rosario residencial con impuestos)
-  · Margen de ganancia sugerido: 40% sobre el costo total
+  · Margen de ganancia sugerido: 40% sobre el precio de venta (margen comercial real)
 
 FÓRMULAS:
   · Costo material    = (gramos / 1000) × precio_filamento_por_kg
@@ -129,13 +129,14 @@ FÓRMULAS:
   · Costo accesorios  = suma de (precio_unitario × cantidad) por cada insumo
   · Costo MDO         = suma de (horas_tarea × tarifa_$/h) por cada tarea
   · Costo total       = material + eléctrico + desgaste + accesorios + MDO
-  · Precio sugerido   = costo_total × (1 + margen/100)
-    → con 40%: precio = costo_total × 1.40
-    → con 40% de margen la ganancia es: precio - costo = 40% del costo total
+  · Precio sugerido   = costo_total / (1 - margen/100)
+    → con 40%: precio = costo_total / 0.60
+    → con 40% de margen la ganancia es: precio - costo = 40% del precio de venta
 
 NOTA SOBRE EL MARGEN:
-  · 40% de margen significa: si el costo es $1.000, el precio es $1.400 (ganancia $400).
-  · Es ganancia sobre el costo, no sobre el precio de venta.
+  · 40% de margen sobre precio de venta significa: si el costo es $1.000, el precio es $1.666,67 (ganancia $666,67 = 40% de $1.666,67).
+  · DIFERENCIA CLAVE: el margen se calcula sobre el precio final, NO sobre el costo.
+  · Ejemplo con 30%: costo $1.000 → precio = $1.000 / 0.70 = $1.428,57 (ganancia $428,57 = 30% de $1.428,57).
 
 CÓMO CALCULAR CUANDO EL USUARIO PIDE UNA COTIZACIÓN:
 1. Pedí solo lo que no sabés: material + gramos + tiempo de impresión.
@@ -147,7 +148,7 @@ CÓMO CALCULAR CUANDO EL USUARIO PIDE UNA COTIZACIÓN:
    · Electricidad: $XXX  (Xh a 230W · $384/kWh)
    · Desgaste:     $XXX  (Xh · $320/h — Bambu A1)
    · Costo total:  $XXX
-   · Precio (40%): $XXX
+   · Precio (40%): $XXX  (= costo / 0.60)
    ─────────────────────────
 4. Después preguntá en UNA sola línea:
    "¿Cambiamos la impresora, tarifa eléctrica, margen o agregamos MDO/accesorios?"
@@ -287,7 +288,7 @@ export const askGemini = async (
     },
     {
       role: 'model',
-      parts: [{ text: '¡Hola! Soy el asesor de TecMaker 3D 🖨️ Puedo ayudarte con recomendaciones de filamentos, resolver problemas de impresión, calcular costos o responder cualquier consulta sobre impresión 3D.' }],
+      parts: [{ text: '¡Hola! Soy el asesor de TecMaker 3D 🧊 Puedo ayudarte con recomendaciones de filamentos, resolver problemas de impresión, calcular costos o responder cualquier consulta sobre impresión 3D.' }],
     },
     ...historial,
     {

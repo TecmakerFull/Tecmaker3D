@@ -8,9 +8,16 @@ import ViewListOutlinedIcon from '@mui/icons-material/ViewListOutlined'
 import SearchIcon           from '@mui/icons-material/Search'
 import TuneOutlinedIcon     from '@mui/icons-material/TuneOutlined'
 import CloseIcon            from '@mui/icons-material/Close'
+import useSEO from '../../hooks/useSEO'
 import styles from './Filamentos.module.css'
 
 const Filamentos = () => {
+  useSEO({
+    title:       'Filamentos 3D — PLA, PETG, Silk y más',
+    description: 'Comprá filamentos para impresión 3D en Rosario: PLA, PETG, Silk, colores metálicos y arco iris. Marcas Elegoo, Filar, GST, Hellbot y Printalot con stock disponible.',
+    path:        '/filamentos',
+  })
+
   const catalogoFilamentos = useStockStore((s) => s.catalogoFilamentos)
   const cargandoCatalogo   = useStockStore((s) => s.cargandoCatalogo)
 

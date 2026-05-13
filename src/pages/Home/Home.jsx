@@ -1,13 +1,14 @@
 import { Typography, Button } from '@mui/material'
 import { Link } from 'react-router-dom'
-import CalculateOutlinedIcon    from '@mui/icons-material/CalculateOutlined'
-import SupportIcon              from '@mui/icons-material/Support'
+import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined'
+import SupportIcon from '@mui/icons-material/Support'
 import ConstructionOutlinedIcon from '@mui/icons-material/ConstructionOutlined'
-import ThreeDRotationIcon       from '@mui/icons-material/ThreeDRotation'
-import ViewInArOutlinedIcon     from '@mui/icons-material/ViewInArOutlined'
-import SquareFootOutlinedIcon   from '@mui/icons-material/SquareFootOutlined'
-import BiotechOutlinedIcon      from '@mui/icons-material/BiotechOutlined'
-import DrawOutlinedIcon         from '@mui/icons-material/DrawOutlined'
+import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation'
+import ViewInArOutlinedIcon from '@mui/icons-material/ViewInArOutlined'
+import SquareFootOutlinedIcon from '@mui/icons-material/SquareFootOutlined'
+import BiotechOutlinedIcon from '@mui/icons-material/BiotechOutlined'
+import DrawOutlinedIcon from '@mui/icons-material/DrawOutlined'
+import useSEO from '../../hooks/useSEO'
 import styles from './Home.module.css'
 
 // ========================
@@ -15,6 +16,36 @@ import styles from './Home.module.css'
 // ========================
 
 const Home = () => {
+  // ── SEO ─────────────────────────────────────────────────────────────────────
+  // JSON-LD tipo LocalBusiness: le dice a Google que somos un negocio local
+  // con dirección física en Rosario. Puede aparecer en Google Maps y búsquedas locales.
+  useSEO({
+    title:       'Filamentos, Accesorios e Impresión 3D en Rosario',
+    description: 'TecMaker 3D — Venta de filamentos PLA, PETG y Silk, accesorios, productos impresos en 3D y modelos STL en Rosario, Santa Fe. Calculadora de costos gratuita.',
+    path:        '/',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type':    'LocalBusiness',           // tipo: negocio local
+      name:       'TecMaker 3D',
+      url:        'https://3d.tecmaker.com.ar',
+      image:      'https://3d.tecmaker.com.ar/logo.png',
+      description: 'Tienda de filamentos, accesorios e impresiones 3D en Rosario, Santa Fe, Argentina.',
+      address: {
+        '@type':           'PostalAddress',
+        streetAddress:     'Lamadrid 650',
+        addressLocality:   'Rosario',
+        addressRegion:     'Santa Fe',
+        addressCountry:    'AR',
+      },
+      contactPoint: [
+        { '@type': 'ContactPoint', telephone: '+54-9-341-586-6464', contactType: 'customer service' },
+      ],
+      sameAs: [   // perfiles verificados del negocio en redes
+        'https://www.instagram.com/tecmaker.3d/',
+        'https://www.facebook.com/profile.php?id=100087129600305',
+      ],
+    },
+  })
   return (
     <main>
       {/* Hero */}
@@ -37,7 +68,7 @@ const Home = () => {
               Ver Filamentos
             </Link>
             <Link to="/calculadora" className={styles.ctaSecondary}>
-              🧮 Calculadora 3D →
+              <CalculateOutlinedIcon sx={{ fontSize: '1.5rem', verticalAlign: 'middle', mr: 0.5 }} /> Calculadora 3D →
             </Link>
           </div>
         </div>

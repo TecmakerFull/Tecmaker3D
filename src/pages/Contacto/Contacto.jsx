@@ -6,11 +6,17 @@ import FacebookIcon        from '@mui/icons-material/Facebook'
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined'
 import MailOutlineIcon     from '@mui/icons-material/MailOutline'
+import useSEO from '../../hooks/useSEO'
 import styles from './Contacto.module.css'
 
 const WHATSAPP_CONTACTO = '5493415866464'
 
 const Contacto = () => {
+  useSEO({
+    title:       'Contacto — TecMaker 3D Rosario',
+    description: 'Contactanos por WhatsApp, Instagram o Facebook. Atención Lunes a Viernes 9-19hs. Lamadrid 650, Rosario, Santa Fe, Argentina.',
+    path:        '/contacto',
+  })
   const [form, setForm] = useState({ nombre: '', email: '', asunto: '', mensaje: '' })
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })

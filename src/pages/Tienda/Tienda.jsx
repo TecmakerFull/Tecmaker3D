@@ -2,6 +2,7 @@ import { Typography, CircularProgress } from '@mui/material'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation'
 import useStockStore from '../../stores/useStockStore'
+import useSEO from '../../hooks/useSEO'
 import styles from './Tienda.module.css'
 
 const WHATSAPP = '5493415866464'
@@ -12,6 +13,12 @@ const handleConsultar = (nombre) => {
 }
 
 const Tienda = () => {
+  useSEO({
+    title:       'Productos Impresos en 3D — Figuras y Accesorios',
+    description: 'Comprá productos ya impresos en 3D listos para llevar en Rosario: figuras, accesorios y piezas únicas. Enviamos a todo el país.',
+    path:        '/tienda',
+  })
+
   const productos       = useStockStore((s) => s.catalogoImpresiones)
   const cargandoCatalogo = useStockStore((s) => s.cargandoCatalogo)
 

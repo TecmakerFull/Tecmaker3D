@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import useStockStore   from '../../stores/useStockStore'
 import useAuthStore    from '../../stores/useAuthStore'
 import { supabase }   from '../../lib/supabase'
+import useSEO         from '../../hooks/useSEO'
 // ── MUI Icons ──────────────────────────────────────────────────────────────────
 import SupportIcon                from '@mui/icons-material/Support'
 import ConstructionOutlinedIcon   from '@mui/icons-material/ConstructionOutlined'
@@ -49,6 +50,36 @@ export default function Calculadora() {
   const catalogoFilamentos = useStockStore((s) => s.catalogoFilamentos)
   const catalogoAccesorios = useStockStore((s) => s.catalogoAccesorios)
   const cargandoCatalogo   = useStockStore((s) => s.cargandoCatalogo)
+
+  // ── SEO ────────────────────────────────────────────────────────────────────
+  // Cada página define su propio título, descripción y datos estructurados.
+  // El hook modifica el <head> del HTML dinámicamente al navegar a esta ruta.
+  useSEO({
+    // Título que aparece como línea azul en Google: "Calculadora... | TecMaker 3D"
+    title:       'Calculadora de Costos de Impresión 3D',
+    // Texto debajo del título en resultados (~155 chars). Incluye las keywords clave.
+    description: 'Calculá gratis el precio de venta de tus impresiones 3D. Incluye materiales, electricidad, mano de obra y amortización. Fórmula de margen sobre precio de venta. Exportá a PDF.',
+    // Ruta usada para construir la URL canónica y el og:url
+    path:        '/calculadora',
+    // JSON-LD: le dice a Google que esta página ES una aplicación web gratuita.
+    // Puede aparecer con rich snippets ("Herramienta web - Gratis") en resultados.
+    jsonLd: {
+      '@context':       'https://schema.org',
+      '@type':          'WebApplication',     // tipo: aplicación web
+      name:             'Calculadora de Costos de Impresión 3D — TecMaker 3D',
+      url:              'https://3d.tecmaker.com.ar/calculadora',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'ARS' }, // es gratis
+      description:     'Herramienta gratuita para calcular el costo y precio de venta de impresiones 3D. Considera materiales (filamentos), electricidad, mano de obra, accesorios y amortización de la impresora.',
+      inLanguage:      'es-AR',
+      creator: {
+        '@type': 'Organization',
+        name:    'TecMaker 3D',
+        url:     'https://3d.tecmaker.com.ar',
+      },
+    },
+  })
 
   // Excluimos solo los repuestos internos (Partes Impresora)
   // Cualquier otra categoría (Insumos para 3D, etc.) se muestra al cliente
@@ -143,7 +174,7 @@ export default function Calculadora() {
 
     const costoOperativo = costoElectrico + costoAmortizacion
     const costoTotal     = costoMateriales + costoAccesorios + costoMDO + costoOperativo
-    const precioFinal    = costoTotal * (1 + margen / 100)
+    const precioFinal    = margen < 100 ? costoTotal / (1 - margen / 100) : costoTotal * 10 // evitar división por cero
 
     return { costoMateriales, costoAccesorios, costoMDO, costoElectrico, costoAmortizacion, costoOperativo, costoTotal, precioFinal, horasN, consumoW }
   }, [consumoWCustom, desgasteCustom, horasImp, minutosImp,
@@ -725,14 +756,26 @@ ${filasMDO ? `<div class="section">
               {nombreProducto ? <><MonetizationOnOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.4 }} />{nombreProducto}</> : <><MonetizationOnOutlinedIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', mr: 0.4 }} />Precio de Venta</>}
             </p>
             <div className={styles.sliderInline}>
-              <span className={styles.sliderInlineLabel}>% Ganancia</span>
+              <span className={styles.sliderInlineLabel}>
+                Margen
+                <span
+                  className={styles.infoTip}
+                  data-tip="Precio = Costo ÷ (1 - Margen). Ej: $1.000 con 30% → $1.428,57"
+                >i</span>
+              </span>
               <input type="range" min="0" max="300" step="5"
                 value={margen} onChange={e => setMargen(Number(e.target.value))}
                 className={styles.slider} />
               <span className={styles.margenValue}>{margen}%</span>
             </div>
             <div className={styles.gananciaAbs}>
-              <span className={styles.gananciaLabel}>Ganancia en $</span>
+              <span className={styles.gananciaLabel}>
+                Utilidad
+                <span
+                  className={styles.infoTip}
+                  data-tip="Utilidad = Precio de venta − Costo total. Es el margen expresado en $."
+                >i</span>
+              </span>
               <span className={styles.gananciaVal}>
                 {fmt(resultado.precioFinal - resultado.costoTotal)}
               </span>
