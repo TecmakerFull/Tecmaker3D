@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { Card, CardContent, CardActions, Typography, Button } from '@mui/material'
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'
 import CheckIcon from '@mui/icons-material/Check'
+import ZoomInIcon from '@mui/icons-material/ZoomIn'
 import useCartStore from '../../stores/useCartStore'
 import useStockStore from '../../stores/useStockStore'
+import ProductoModal from '../ProductoModal/ProductoModal'
 import styles from './AccesorioCard.module.css'
 
 const AccesorioCard = ({ accesorio }) => {
   const [added,    setAdded]    = useState(false)
   const [qty,      setQty]      = useState(1)
+  const [modalOpen, setModalOpen] = useState(false)
 
   const addItem          = useCartStore((state) => state.addItem)
   const setItemQuantity  = useCartStore((state) => state.setItemQuantity)
@@ -68,7 +71,7 @@ const AccesorioCard = ({ accesorio }) => {
 
   return (
     <Card className={styles.card} elevation={0}>
-      <div className={styles.imageWrapper}>
+      <div className={styles.imageWrapper} onClick={() => setModalOpen(true)} style={{ cursor: 'pointer' }}>
         <img
           src={accesorio.imagen}
           alt={accesorio.nombre}
@@ -76,6 +79,7 @@ const AccesorioCard = ({ accesorio }) => {
           loading="lazy"
           onError={(e) => { e.target.style.opacity = '0.3' }}
         />
+        <div className={styles.zoomHint}><ZoomInIcon sx={{ fontSize: '1.4rem' }} /></div>
         <div className={styles.badgesWrapper}>
           <span className={styles.categoriaBadge}>{accesorio.categoria}</span>
           <span className={`${styles.stockBadge} ${stockClasses[stockStatus]}`}>
@@ -143,6 +147,14 @@ const AccesorioCard = ({ accesorio }) => {
           </Button>
         </div>
       </CardActions>
+
+      {modalOpen && (
+        <ProductoModal
+          producto={accesorio}
+          tipo="accesorio"
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </Card>
   )
 }

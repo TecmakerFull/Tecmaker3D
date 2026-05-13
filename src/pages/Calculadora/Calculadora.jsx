@@ -331,42 +331,59 @@ ${filasMDO ? `<div class="section">
 
   const confirmarGuardar = async () => {
     setGuardando(true)
-    const payload = {
-      usuario_id:         session.user.id,
-      nombre_producto:    nombreProducto || null,
-      cliente:            cliente        || null,
-      materiales:         JSON.stringify(materiales),
-      accesorios:         JSON.stringify(accesorios),
-      mano_de_obra:       JSON.stringify(mdo),
-      impresora_nombre:   impresora.nombre,
-      consumo_w:          Number(consumoWCustom) || 0,
-      desgaste_hora:      Number(desgasteCustom) || 0,
-      horas_imp:          Number(horasImp)       || 0,
-      minutos_imp:        Number(minutosImp)     || 0,
-      tarifa_kwh:         Number(tarifaKwh)      || 0,
-      margen,
-      costo_materiales:   resultado.costoMateriales,
-      costo_accesorios:   resultado.costoAccesorios,
-      costo_mdo:          resultado.costoMDO,
-      costo_electrico:    resultado.costoElectrico,
-      costo_amortizacion: resultado.costoAmortizacion,
-      costo_total:        resultado.costoTotal,
-      precio_final:       resultado.precioFinal,
+    let payload
+    try {
+      payload = {
+        usuario_id:         session.user.id,
+        nombre_producto:    nombreProducto || null,
+        cliente:            cliente        || null,
+        materiales:         JSON.stringify(materiales),
+        accesorios:         JSON.stringify(accesorios),
+        mano_de_obra:       JSON.stringify(mdo),
+        impresora_nombre:   impresora.nombre,
+        consumo_w:          Number(consumoWCustom) || 0,
+        desgaste_hora:      Number(desgasteCustom) || 0,
+        horas_imp:          Number(horasImp)       || 0,
+        minutos_imp:        Number(minutosImp)     || 0,
+        tarifa_kwh:         Number(tarifaKwh)      || 0,
+        margen,
+        costo_materiales:   resultado.costoMateriales,
+        costo_accesorios:   resultado.costoAccesorios,
+        costo_mdo:          resultado.costoMDO,
+        costo_electrico:    resultado.costoElectrico,
+        costo_amortizacion: resultado.costoAmortizacion,
+        costo_total:        resultado.costoTotal,
+        precio_final:       resultado.precioFinal,
+      }
+    } catch (buildErr) {
+      console.error('Error construyendo payload:', buildErr)
+      alert('Error preparando los datos: ' + buildErr.message)
+      setGuardando(false)
+      setModalGuardar(false)
+      return
     }
     try {
-      const { error } = await supabase.from('cotizaciones').insert(payload)
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Tiempo de espera agotado. Verificá tu conexión e intentá de nuevo.')), 15000)
+      )
+      const { error } = await Promise.race([
+        supabase.from('cotizaciones').insert(payload),
+        timeout,
+      ])
       if (!error) {
         setGuardadoOk(true)
+        setModalGuardar(false)
       } else {
-        console.error('Error guardando cotización:', error.message, error.details, error.hint)
+        console.error('Error guardando cotización:', error)
         alert(`No se pudo guardar la cotización.\n\nError: ${error.message}${error.hint ? '\nHint: ' + error.hint : ''}`)
+        setModalGuardar(false)
       }
     } catch (e) {
       console.error('Excepción al guardar cotización:', e)
-      alert(`Error inesperado al guardar: ${e.message}`)
+      alert(`Error al guardar: ${e.message}`)
+      setModalGuardar(false)
     } finally {
       setGuardando(false)
-      setModalGuardar(false)
     }
   }
 

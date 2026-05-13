@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { Typography, CircularProgress } from '@mui/material'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
 import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation'
+import ZoomInIcon from '@mui/icons-material/ZoomIn'
 import useStockStore from '../../stores/useStockStore'
 import useSEO from '../../hooks/useSEO'
+import ProductoModal from '../../components/ProductoModal/ProductoModal'
 import styles from './Tienda.module.css'
 
 const WHATSAPP = '5493415866464'
@@ -13,6 +16,8 @@ const handleConsultar = (nombre) => {
 }
 
 const Tienda = () => {
+  const [productoSeleccionado, setProductoSeleccionado] = useState(null)
+
   useSEO({
     title:       'Productos Impresos en 3D — Figuras y Accesorios',
     description: 'Comprá productos ya impresos en 3D listos para llevar en Rosario: figuras, accesorios y piezas únicas. Enviamos a todo el país.',
@@ -39,8 +44,13 @@ const Tienda = () => {
           <div className={styles.grid}>
             {productos.map((p) => (
               <div key={p.id} className={styles.card}>
-                <div className={styles.imgWrapper}>
+                <div
+                  className={styles.imgWrapper}
+                  onClick={() => setProductoSeleccionado(p)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <img src={p.imagen} alt={p.nombre} className={styles.img} loading="lazy" />
+                  <div className={styles.zoomHint}><ZoomInIcon sx={{ fontSize: '1.4rem' }} /></div>
                 </div>
                 <div className={styles.cardBody}>
                   <Typography className={styles.nombre}>{p.nombre}</Typography>
@@ -60,6 +70,14 @@ const Tienda = () => {
           </div>
         )}
       </div>
+
+      {productoSeleccionado && (
+        <ProductoModal
+          producto={productoSeleccionado}
+          tipo="impresion"
+          onClose={() => setProductoSeleccionado(null)}
+        />
+      )}
     </div>
   )
 }

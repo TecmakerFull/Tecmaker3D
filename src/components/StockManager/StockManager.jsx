@@ -20,7 +20,7 @@ const StockManager = () => {
   const [loginError, setLoginError] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
 
-  const { stock, precios, catalogoFilamentos, catalogoAccesorios, cargando, error, cargarStock, ingresarStock, egresarStock, ajustarStock, actualizarPrecio, eliminarProducto } = useStockStore()
+  const { stock, precios, catalogoFilamentos, catalogoAccesorios, catalogoImpresiones, cargando, error, cargarStock, ingresarStock, egresarStock, ajustarStock, actualizarPrecio, eliminarProducto } = useStockStore()
   const [tab, setTab] = useState('filamentos')
   const [inputValues, setInputValues] = useState({})
   const [precioValues, setPrecioValues] = useState({})
@@ -28,7 +28,9 @@ const StockManager = () => {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [productoEditando, setProductoEditando] = useState(null)
 
-  const productos = tab === 'filamentos' ? catalogoFilamentos : catalogoAccesorios
+  const productos = tab === 'filamentos' ? catalogoFilamentos
+                  : tab === 'accesorios' ? catalogoAccesorios
+                  : catalogoImpresiones
 
   // ── Búsqueda y ordenamiento local ──
   const [busqueda,  setBusqueda]  = useState('')
@@ -159,6 +161,7 @@ const StockManager = () => {
     const todos = [
       ...catalogoFilamentos.map(p => ({ ...p, _tipo: 'Filamento' })),
       ...catalogoAccesorios.map(p => ({ ...p, _tipo: 'Accesorio' })),
+      ...catalogoImpresiones.map(p => ({ ...p, _tipo: 'Impresión 3D' })),
     ].sort((a, b) => {
       if (a._tipo !== b._tipo) return a._tipo.localeCompare(b._tipo)
       return (a.nombre || '').localeCompare(b.nombre || '')
@@ -343,8 +346,14 @@ tr:nth-child(even) td{background:#f8fafc}
               <span className={styles.summaryLabel}>Unidades de Accesorios</span>
             </div>
             <div className={styles.summaryCard}>
+              <span className={styles.summaryNumber} style={{ color: '#22c55e' }}>
+                {catalogoImpresiones.reduce((acc, a) => acc + (stock[a.id] || 0), 0)}
+              </span>
+              <span className={styles.summaryLabel}>Unidades de Impresiones</span>
+            </div>
+            <div className={styles.summaryCard}>
               <span className={styles.summaryNumber} style={{ color: '#ef4444' }}>
-                {[...catalogoFilamentos, ...catalogoAccesorios].filter((p) => (stock[p.id] || 0) === 0).length}
+                {[...catalogoFilamentos, ...catalogoAccesorios, ...catalogoImpresiones].filter((p) => (stock[p.id] || 0) === 0).length}
               </span>
               <span className={styles.summaryLabel}>Sin Stock</span>
             </div>
@@ -359,6 +368,10 @@ tr:nth-child(even) td{background:#f8fafc}
               <button className={`${styles.tab} ${tab === 'accesorios' ? styles.tabActive : ''}`}
                 onClick={() => setTab('accesorios')} id="tab-accesorios">
                 ⚙️ Accesorios ({catalogoAccesorios.length})
+              </button>
+              <button className={`${styles.tab} ${tab === 'impresiones' ? styles.tabActive : ''}`}
+                onClick={() => setTab('impresiones')} id="tab-impresiones">
+                🖨️ Impresiones ({catalogoImpresiones.length})
               </button>
             </div>
             <div className={styles.tabsActions}>

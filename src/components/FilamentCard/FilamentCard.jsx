@@ -2,15 +2,18 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardActions, Typography, Button } from '@mui/material'
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'
 import CheckIcon from '@mui/icons-material/Check'
+import ZoomInIcon from '@mui/icons-material/ZoomIn'
 import useCartStore from '../../stores/useCartStore'
 import useStockStore from '../../stores/useStockStore'
 import useReservasStore from '../../stores/useReservasStore'
+import ProductoModal from '../ProductoModal/ProductoModal'
 import styles from './FilamentCard.module.css'
 
 const FilamentCard = ({ filamento }) => {
   const [added,    setAdded]    = useState(false)
   const [countdown, setCountdown] = useState('')
   const [qty,      setQty]      = useState(1)
+  const [modalOpen, setModalOpen] = useState(false)
 
   const addItem         = useCartStore((state) => state.addItem)
   const setItemQuantity = useCartStore((state) => state.setItemQuantity)
@@ -103,8 +106,8 @@ const FilamentCard = ({ filamento }) => {
 
   return (
     <Card className={styles.card} elevation={0}>
-      {/* Imagen */}
-      <div className={styles.imageWrapper}>
+      {/* Imagen — click abre el modal */}
+      <div className={styles.imageWrapper} onClick={() => setModalOpen(true)} style={{ cursor: 'pointer' }}>
         <img
           src={filamento.imagen}
           alt={`${filamento.marca} ${filamento.nombre}`}
@@ -112,6 +115,7 @@ const FilamentCard = ({ filamento }) => {
           loading="lazy"
           onError={(e) => { e.target.style.opacity = '0.3' }}
         />
+        <div className={styles.zoomHint}><ZoomInIcon sx={{ fontSize: '1.4rem' }} /></div>
         <div className={styles.badgesWrapper}>
           <span className={styles.tipoBadge}>{filamento.material}</span>
           <span className={`${styles.stockBadge} ${stockClasses[stockStatus]}`}>
@@ -189,6 +193,14 @@ const FilamentCard = ({ filamento }) => {
           </Button>
         </div>
       </CardActions>
+
+      {modalOpen && (
+        <ProductoModal
+          producto={filamento}
+          tipo="filamento"
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </Card>
   )
 }

@@ -38,6 +38,23 @@
   transform: scale(1.08);
 }
 
+/* Ícono zoom que aparece al hacer hover */
+.zoomHint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.imageWrapper:hover .zoomHint {
+  opacity: 1;
+}
+
 .badgesWrapper {
   position: absolute;
   top: 10px;

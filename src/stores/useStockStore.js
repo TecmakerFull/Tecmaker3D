@@ -47,9 +47,9 @@ const useStockStore = create((set, get) => ({
     set({ cargandoCatalogo: true })
     const { data, error } = await supabase
       .from('productos')
-      .select('id, nombre, marca, tipo, material, color, precio, descripcion, imagen, peso, diametro, temp_impresion, temp_cama, especificaciones, link_compra, stock')
+      .select('id, nombre, marca, tipo, material, color, precio, descripcion, imagen, peso, diametro, temp_impresion, temp_cama, especificaciones, link_compra, stock, created_at')
       .eq('activo', true)
-      .order('id')
+      .order('created_at', { ascending: false })
 
     if (error) {
       console.error('❌ Error Supabase:', error.message, '| Detalle:', error.details, '| Hint:', error.hint)
@@ -275,7 +275,7 @@ const useStockStore = create((set, get) => ({
       const catalogoMap = { ...state.catalogo, [data.id]: nuevo }
 
       const actualizar = (lista, tipo) =>
-        data.tipo === tipo ? [...lista, nuevo] : lista
+        data.tipo === tipo ? [nuevo, ...lista] : lista
 
       return {
         stock:               stockMap,
