@@ -157,7 +157,7 @@ La calculadora tiene prioridad `0.9` (casi máxima) para que Google la encuentre
 **Cómo enviar el sitemap a Google:**
 1. Entrar a [Google Search Console](https://search.google.com/search-console)
 2. Agregar la propiedad `3d.tecmaker.com.ar`
-3. Ir a "Sitemaps" → ingresar `sitemap.xml` → Enviar
+3. Ir a "Sitemaps" → ingresar `sitemap.xml` → Enviar  (Ya realizado)
 
 ### `public/robots.txt`
 

@@ -65,7 +65,7 @@
 .nombreInput {
   flex: 1;
   min-width: 180px;
-  background: rgba(255,255,255,0.04);
+  background: #000;
   border: 1px solid rgba(245,158,11,0.2);
   border-radius: 8px;
   color: #f1f5f9;
@@ -76,7 +76,7 @@
   transition: border-color 0.2s;
 }
 .nombreInput:focus { border-color: rgba(245,158,11,0.45); }
-.nombreInput::placeholder { color: #334155; }
+.nombreInput::placeholder { color: #475569; }
 
 /* ── Botones header ──────────────────────────── */
 .btnCalcular {
@@ -206,19 +206,21 @@
   max-width: 1200px;
   margin: 0.75rem auto 0;
   padding: 0 1.25rem;
-  align-items: end;
+  align-items: stretch;
 }
 
 .leftCol {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  justify-content: space-between;
 }
 
 .rightCol {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  justify-content: space-between;
   position: sticky;
   top: calc(72px + 0.75rem);
 }
@@ -296,8 +298,26 @@
   .materialGrid {
     flex-wrap: wrap;
   }
+  /* ssWrap ocupa toda la fila en mobile */
+  .materialGrid .ssWrap { flex: 1 1 100%; order: 1; }
   .materialGrid .inputGroup:nth-child(3),
-  .materialGrid .inputGroup:nth-child(4) { flex: 1; min-width: 70px; width: auto; }
+  .materialGrid .inputGroup:nth-child(4) { flex: 1; min-width: 70px; width: auto; order: 2; }
+  .materialGrid .btnRemove { order: 3; margin-left: auto; }
+
+  /* Dropdown: ancho adaptado a pantalla */
+  .ssDropdown {
+    min-width: min(320px, calc(100vw - 3rem));
+    left: 0;
+    right: auto;
+  }
+
+  /* Texto de opciones: permite wrapping en mobile */
+  .ssOption {
+    white-space: normal;
+    line-height: 1.4;
+    overflow: visible;
+    text-overflow: unset;
+  }
 
   /* Mano de Obra: simplificar grilla */
   .mdoHeader {
@@ -337,8 +357,8 @@
 
 /* ── Cards ───────────────────────────────────── */
 .card {
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #1c1c1c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   padding: 1rem 1rem 0.75rem;
 }
@@ -514,8 +534,8 @@
 /* ── Inputs / Selects ────────────────────────── */
 .input,
 .select {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.09);
+  background: #000;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 7px;
   color: #f1f5f9;
   font-family: 'Poppins', sans-serif;
@@ -529,7 +549,7 @@
 .input:focus,
 .select:focus {
   border-color: rgba(245,158,11,0.4);
-  background: rgba(245,158,11,0.03);
+  background: #0a0800;
 }
 
 .input::placeholder { color: #475569; }
@@ -540,7 +560,7 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
-  background-color: rgba(255,255,255,0.04);
+  background-color: #000;
   padding-right: 1.5rem;
   flex: 1;
 }
@@ -556,7 +576,7 @@
 .inputDetalle {
   width: 100%;
   margin-top: 0.25rem;
-  background: rgba(245,158,11,0.03);
+  background: #000;
   border: 1px dashed rgba(245,158,11,0.2);
   border-radius: 5px;
   color: #94a3b8;
@@ -571,7 +591,7 @@
   border-color: rgba(245,158,11,0.4);
   color: #f1f5f9;
 }
-.inputDetalle::placeholder { color: #334155; }
+.inputDetalle::placeholder { color: #475569; }
 
 /* ── Elimina flechas spinner en inputs numéricos compactos ─ */
 .compactRow input[type='number']::-webkit-inner-spin-button,
@@ -835,8 +855,8 @@
 }
 
 .resultCardWide {
-  background: linear-gradient(135deg, #141414 0%, #111111 100%);
-  border: 1px solid rgba(245,158,11,0.15);
+  background: linear-gradient(135deg, #1c1c1c 0%, #161616 100%);
+  border: 1px solid rgba(245,158,11,0.18);
   border-radius: 14px;
   padding: 1rem 1.25rem;
 }
@@ -1107,8 +1127,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.4rem;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.09);
+  background: #000;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 7px;
   color: #f1f5f9;
   font-family: 'Poppins', sans-serif;
@@ -1120,11 +1140,11 @@
 }
 .ssTrigger:hover {
   border-color: rgba(245,158,11,0.3);
-  background: rgba(245,158,11,0.03);
+  background: #0a0800;
 }
 .ssTriggerOpen {
   border-color: rgba(245,158,11,0.45) !important;
-  background: rgba(245,158,11,0.04) !important;
+  background: #0a0800 !important;
 }
 .ssTriggerEmpty .ssTriggerLabel { color: #475569; }
 
@@ -1169,7 +1189,7 @@
 
 .ssSearch {
   width: 100%;
-  background: rgba(255,255,255,0.06);
+  background: #000;
   border: 1px solid rgba(245,158,11,0.2);
   border-radius: 6px;
   color: #f1f5f9;
